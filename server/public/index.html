@@ -207,8 +207,13 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const API = ''; // same origin
+// identitas stabil (Kahoot-style): guest pake uuid localStorage, akun pake token
+let guestPid = localStorage.getItem('tc_pid');
+if(!guestPid){guestPid='p_'+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));localStorage.setItem('tc_pid',guestPid);}
+let guestNick = localStorage.getItem('tc_nick') || ('Pemain'+Math.floor(1000+Math.random()*9000));
+localStorage.setItem('tc_nick',guestNick);
 let token = localStorage.getItem('tc_token') || '';
-let me = JSON.parse(localStorage.getItem('tc_me') || 'null');
+let me = JSON.parse(localStorage.getItem('tc_me') || 'null') || { id: guestPid, username: guestNick }; // {id, username}
 let socket = null;
 let roomState = null;       // snapshot terbaru dari server
 let gameEvents = [];        // recorder event game
@@ -225,9 +230,11 @@ function cardHTML(c){return `<div class="pcard ${RED[c.suit]?'red':''}"><span cl
 async function api(path,opts){const r=await fetch(API+path,{headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},...opts});return r.json();}
 
 // ---------- auth ----------
-async function guestLogin(){
-  const r=await fetch(API+'/api/auth/guest',{method:'POST'}).then(x=>x.json());
-  token=r.token;me=r.user;saveAuth();connectSocket();show('scr-home');renderHome();
+function guestLogin(){
+  // Kahoot-style: guest gak perlu akun DB — langsung pake uuid stabil
+  me={ id: guestPid, username: guestNick };
+  token='';
+  connectSocket();show('scr-home');renderHome();
 }
 async function doRegister(){
   const u=document.getElementById('reg-user').value.trim(),p=document.getElementById('reg-pass').value;
@@ -236,15 +243,18 @@ async function doRegister(){
   token=r.token;me=r.user;saveAuth();connectSocket();show('scr-home');renderHome();
 }
 function saveAuth(){localStorage.setItem('tc_token',token);localStorage.setItem('tc_me',JSON.stringify(me));}
-function logout(){token='';me=null;localStorage.clear();if(socket)socket.disconnect();show('scr-login');}
+function logout(){token='';me={id:guestPid,username:guestNick};localStorage.removeItem('tc_token');localStorage.removeItem('tc_me');if(socket)socket.disconnect();show('scr-login');}
 function renderHome(){document.getElementById('home-user').textContent=me?`@${me.username}`:'';}
 
 // ---------- socket ----------
 function connectSocket(){
   if(socket)socket.disconnect();
-  socket=io({auth:{token}});
+  // registered pakai token (server pakai akun id); guest pakai playerId+nickname stabil
+  const auth = (token && me.id!==guestPid) ? { token } : { playerId: guestPid, nickname: me.username||guestNick };
+  socket=io({auth});
   socket.on('room:state',(st)=>{roomState=st;renderCurrent();});
   socket.on('game:event',(e)=>{gameEvents.push(e);if(e.type==='game_over')handleGameOver(e);renderCurrent();});
+  socket.on('game:error',(e)=>toast(e.message||'Error game'));
   socket.on('connect_error',(e)=>toast('Koneksi gagal: '+e.message));
 }
 
@@ -284,10 +294,10 @@ function renderLobby(){
   document.getElementById('lobby-code').textContent=roomState.code;
   document.getElementById('lobby-count').textContent=roomState.players.length;
   document.getElementById('lobby-players').innerHTML=roomState.players.map(p=>`
-    <div class="prow ${p.userId===me.id?'me':''}">
-      <span class="av">${(p.username||'?')[0].toUpperCase()}</span>
-      <span class="nm">${p.username||'?'}${p.userId===me.id?' (kamu)':''}</span>
-      ${p.userId===roomState.hostId?'<span class="badge host">HOST</span>':'<span class="badge up">SIAP</span>'}
+    <div class="prow ${p.playerId===me.id?'me':''}">
+      <span class="av">${(p.nickname||'?')[0].toUpperCase()}</span>
+      <span class="nm">${p.nickname||'?'}${p.playerId===me.id?' (kamu)':''}</span>
+      ${p.playerId===roomState.hostId?'<span class="badge host">HOST</span>':'<span class="badge up">SIAP</span>'}
     </div>`).join('');
   document.getElementById('lobby-start').classList.toggle('hidden',roomState.hostId!==me.id);
 }
@@ -307,9 +317,9 @@ function renderCountdown(){
   document.getElementById('g-cards').innerHTML='';
   document.getElementById('g-prove').classList.add('hidden');
   document.getElementById('g-players').innerHTML=roomState.players.map(p=>`
-    <div class="prow ${p.userId===me.id?'me':''}">
-      <span class="av">${(p.username||'?')[0].toUpperCase()}</span>
-      <span class="nm">${p.username||'?'}</span><span class="badge up">SIAP</span>
+    <div class="prow ${p.playerId===me.id?'me':''}">
+      <span class="av">${(p.nickname||'?')[0].toUpperCase()}</span>
+      <span class="nm">${p.nickname||'?'}</span><span class="badge up">SIAP</span>
     </div>`).join('');
   document.getElementById('g-actions').innerHTML='';
   tick();cdTicker=setInterval(tick,300);
@@ -328,7 +338,7 @@ function handleGameOver(e){
     </div>`).join('');
   show('scr-over');
 }
-function nameOf(uid){const p=roomState?.players?.find(x=>x.userId===uid);return p?p.username:uid.slice(0,10);}
+function nameOf(uid){const p=roomState?.players?.find(x=>x.playerId===uid);return p?p.nickname:(uid||'?').slice(0,10);}
 
 // ---------- game ----------
 function renderGame(){
@@ -348,18 +358,18 @@ function renderGame(){
 
   // players
   document.getElementById('g-players').innerHTML=roomState.players.map(p=>{
-    const raised=(g.raised||[]).includes(p.userId);
-    const surrendered=(g.surrendered||[]).includes(p.userId);
-    const cnt=g.cardCounts?.[p.userId]??0;
+    const raised=(g.raised||[]).includes(p.playerId);
+    const surrendered=(g.surrendered||[]).includes(p.playerId);
+    const cnt=g.cardCounts?.[p.playerId]??0;
     let badge='<span class="badge think">berpikir</span>';
     if(surrendered)badge='<span class="badge bad">FOLD</span>';
-    else if(g.phase==='AWAIT_PROOF'&&g.targetId===p.userId)badge='<span class="badge bad">MENBUKTIKAN</span>';
-    else if(g.phase==='CHALLENGE'&&g.challengerId===p.userId)badge='<span class="badge host">MENANTANG</span>';
+    else if(g.phase==='AWAIT_PROOF'&&g.targetId===p.playerId)badge='<span class="badge bad">MENBUKTIKAN</span>';
+    else if(g.phase==='CHALLENGE'&&g.challengerId===p.playerId)badge='<span class="badge host">MENANTANG</span>';
     else if(raised)badge='<span class="badge up">RAISE ⬆</span>';
     const clickable=g.phase==='CHALLENGE'&&g.challengerId===me.id&&raised;
-    return `<div class="prow ${p.userId===me.id?'me':''} ${clickable?'':''}" ${clickable?`onclick="challenge('${p.userId}')"`:''} style="${clickable?'border-color:var(--red);':''}">
-      <span class="av">${p.username[0].toUpperCase()}</span>
-      <span class="nm">${p.username}${p.userId===me.id?' (kamu)':''}</span>
+    return `<div class="prow ${p.playerId===me.id?'me':''}" ${clickable?`onclick="challenge('${p.playerId}')"`:''} style="${clickable?'border-color:var(--red);':''}">
+      <span class="av">${(p.nickname||'?')[0].toUpperCase()}</span>
+      <span class="nm">${p.nickname||'?'}${p.playerId===me.id?' (kamu)':''}</span>
       <span class="cnt">${cnt} kartu</span>${badge}</div>`;
   }).join('');
 

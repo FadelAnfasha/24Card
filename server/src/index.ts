@@ -29,21 +29,23 @@ app.get('/health', (_req, res) => res.json({ ok: true, service: 'twentycard-serv
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
 
-// Auth middleware: handshake socket bawa JWT via handshake.auth.token.
-// Tanpa token = anonymous, hanya bisa join room (belum login).
+// Auth middleware: identitas stabil.
+// - Registered: pakai JWT (userId akun) — stabil via localStorage.
+// - Guest: pakai playerId dari client (uuid localStorage) + nickname — stabil
+//   walau refresh, tanpa perlu akun DB.
 io.use((socket, next) => {
-  const token = socket.handshake.auth?.token as string | undefined;
-  if (token) {
-    const payload = verifyToken(token);
+  const auth = (socket.handshake.auth ?? {}) as { token?: string; playerId?: string; nickname?: string };
+  if (auth.token) {
+    const payload = verifyToken(auth.token);
     if (payload) {
-      socket.data.userId = payload.userId;
-      socket.data.username = payload.username;
+      socket.data.playerId = payload.userId; // akun id stabil
+      socket.data.nickname = payload.username;
       return next();
     }
   }
-  // anonymous fallback
-  socket.data.userId = `anon_${socket.id.slice(0, 8)}`;
-  socket.data.username = `Anon_${socket.id.slice(0, 4)}`;
+  // guest: uuid stabil dari client
+  socket.data.playerId = auth.playerId && auth.playerId.length >= 8 ? auth.playerId : `p_${socket.id.slice(0, 12)}`;
+  socket.data.nickname = (auth.nickname || 'Pemain').slice(0, 24);
   next();
 });
 
