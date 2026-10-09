@@ -33,20 +33,22 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     if (event.type === 'round_resolved') {
       const r = event.resolution;
       const snap = room.game?.snapshot();
-      void db().round
-        .create({
-          data: {
-            gameId: room.code, // sementara pakai room code sbg game key (lihat catatan bawah)
-            roundNo: r.roundNo,
-            cards: r.cards as unknown as object,
-            raisedPlayers: (snap?.raised ?? []) as unknown as object,
-            challengerId: snap?.challengerId ?? null,
-            targetId: snap?.targetId ?? null,
-            penaltyUserId: r.penaltyHolderId,
-            hangus: r.hangus,
-          },
-        })
-        .catch((e) => console.error('gagal simpan round:', e));
+      if (room.gameRecordId) {
+        void db().round
+          .create({
+            data: {
+              gameId: room.gameRecordId,
+              roundNo: r.roundNo,
+              cards: r.cards as unknown as object,
+              raisedPlayers: (snap?.raised ?? []) as unknown as object,
+              challengerId: snap?.challengerId ?? null,
+              targetId: snap?.targetId ?? null,
+              penaltyUserId: r.penaltyHolderId,
+              hangus: r.hangus,
+            },
+          })
+          .catch((e) => console.error('gagal simpan round:', e));
+      }
     }
 
     if (event.type === 'game_over') {
@@ -87,11 +89,11 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
 
   // ---------- game ----------
 
-  socket.on('game:start', (cb?: (res: object) => void) => {
+  socket.on('game:start', async (cb?: (res: object) => void) => {
     const room = roomManager.roomOfUser(userId);
     if (!room) return cb?.({ error: 'belum di room' });
     if (room.hostId !== userId) return cb?.({ error: 'hanya host yang bisa start' });
-    const result = roomManager.startGame(room.code, handleEngineEvent);
+    const result = await roomManager.startGame(room.code, handleEngineEvent);
     if ('error' in result) return cb?.({ error: result.error });
     cb?.({ ok: true });
     broadcastRoom(result.room);
@@ -148,21 +150,40 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
 // Catatan persistensi: gameId di DB idealnya UUID game tersendiri.
 // Untuk v1 lokal, room code dipakai sementara sebagai kunci game.
 async function persistGameOver(room: Room, event: Extract<EngineEvent, { type: 'game_over' }>): Promise<void> {
+  const winnerId = event.winnerId;
+
+  // update record Game
+  if (room.gameRecordId) {
+    await db().game
+      .update({
+        where: { id: room.gameRecordId },
+        data: { status: 'finished', endedAt: new Date(), winnerId },
+      })
+      .catch((e) => console.error('gagal update game:', e));
+
+    // update tiap GamePlayer (finalCardCount + placement)
+    for (const s of event.standings) {
+      await db().gamePlayer
+        .update({
+          where: { gameId_userId: { gameId: room.gameRecordId, userId: s.playerId } },
+          data: { finalCardCount: s.cardCount, placement: s.isWinner ? s.placement : s.placement },
+        })
+        .catch(() => {});
+    }
+  }
+
+  // update statistik User HANYA untuk pemain terdaftar (id asli di tabel User).
+  // pemain anon (id "anon_*") dilewati — gak ada record User-nya.
   for (const s of event.standings) {
-    const p = room.players.find((x) => x.userId === s.playerId);
-    if (!p) continue;
+    if (s.playerId.startsWith('anon_')) continue;
+    const u = await db().user.findUnique({ where: { id: s.playerId } });
+    if (!u) continue;
+    const gamesPlayed = u.gamesPlayed + 1;
+    const wins = u.wins + (s.isWinner ? 1 : 0);
+    const winRate = gamesPlayed > 0 ? Math.round((wins / gamesPlayed) * 100) : 0;
     await db().user.update({
       where: { id: s.playerId },
-      data: {
-        gamesPlayed: { increment: 1 },
-        wins: s.isWinner ? { increment: 1 } : undefined,
-      },
+      data: { gamesPlayed, wins, winRate },
     });
-    // hitung ulang win rate
-    const u = await db().user.findUnique({ where: { id: s.playerId } });
-    if (u) {
-      const rate = u.gamesPlayed > 0 ? Math.round((u.wins / u.gamesPlayed) * 100) : 0;
-      await db().user.update({ where: { id: s.playerId }, data: { winRate: rate } });
-    }
   }
 }

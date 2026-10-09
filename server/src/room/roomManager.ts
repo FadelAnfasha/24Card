@@ -3,6 +3,7 @@
 
 import { randomBytes } from 'node:crypto';
 import { Game24, type EngineEvent } from '../game/engine.js';
+import { db } from '../db/client.js';
 
 export interface RoomPlayer {
   userId: string;
@@ -15,6 +16,7 @@ export interface Room {
   hostId: string;
   players: RoomPlayer[]; // 2-10
   game: Game24 | null;
+  gameRecordId: string | null; // UUID record Game di DB
   status: 'lobby' | 'playing' | 'finished';
   createdAt: number;
 }
@@ -36,7 +38,7 @@ export class RoomManager {
   createRoom(host: RoomPlayer): Room {
     let code = genCode();
     while (this.rooms.has(code)) code = genCode();
-    const room: Room = { code, hostId: host.userId, players: [host], game: null, status: 'lobby', createdAt: Date.now() };
+    const room: Room = { code, hostId: host.userId, players: [host], game: null, gameRecordId: null, status: 'lobby', createdAt: Date.now() };
     this.rooms.set(code, room);
     return room;
   }
@@ -75,12 +77,24 @@ export class RoomManager {
     return room;
   }
 
-  // Mulai game — hanya host, minimal MIN_PLAYERS pemain.
-  startGame(code: string, onEvent: (room: Room, event: EngineEvent) => void): { room: Room } | { error: string } {
+  // Mulai game — hanya host, minimal MIN_PLAYERS pemain. Buat record Game di DB.
+  async startGame(code: string, onEvent: (room: Room, event: EngineEvent) => void): Promise<{ room: Room } | { error: string }> {
     const room = this.rooms.get(code.toUpperCase());
     if (!room) return { error: 'room tidak ditemukan' };
     if (room.status !== 'lobby') return { error: 'game sudah berjalan' };
     if (room.players.length < MIN_PLAYERS) return { error: `minimal ${MIN_PLAYERS} pemain` };
+
+    // persistensi: bikin record Game + GamePlayer
+    try {
+      const gameRec = await db().game.create({ data: { roomCode: room.code, status: 'in_progress' } });
+      room.gameRecordId = gameRec.id;
+      for (let i = 0; i < room.players.length; i++) {
+        await db().gamePlayer.create({ data: { gameId: gameRec.id, userId: room.players[i]!.userId, seat: i } });
+      }
+    } catch (e) {
+      console.error('gagal bikin record game:', e);
+      // lanjut tanpa persistensi (game in-memory tetap jalan)
+    }
 
     const game = new Game24(
       room.players.map((p) => p.userId),

@@ -18,10 +18,6 @@ model User {
   gamesPlayed  Int      @default(0)
   wins         Int      @default(0)
   winRate      Decimal  @default(0) @db.Decimal(5, 2)
-
-  gamesPlayedRel GamePlayer[]
-  gamesWon       Game[]       @relation("GameWinner")
-  roundsAsPenalty Round[]     @relation("PenaltyHolder")
 }
 
 model Game {
@@ -29,8 +25,7 @@ model Game {
   roomCode  String
   startedAt DateTime  @default(now())
   endedAt   DateTime?
-  winnerId  String?
-  winner    User?     @relation("GameWinner", fields: [winnerId], references: [id])
+  winnerId  String? // string biasa (bukan FK) — bisa id anon
   status    String    @default("in_progress") // in_progress | finished | aborted
 
   players GamePlayer[]
@@ -39,13 +34,12 @@ model Game {
 
 model GamePlayer {
   gameId         String
-  userId         String
+  userId         String // string biasa (bukan FK) — bisa id anon
   seat           Int
   finalCardCount Int?
   placement      Int? // NULL = tie (kalah)
 
   game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([gameId, userId])
 }
@@ -60,8 +54,7 @@ model Round {
   targetId         String?
   proofExpression  String?
   proofValid       Boolean?
-  penaltyUserId    String?
-  penaltyHolder    User?    @relation("PenaltyHolder", fields: [penaltyUserId], references: [id])
+  penaltyUserId    String? // string biasa (bukan FK) — bisa berisi id anon
   hangus           Boolean  @default(false)
 
   game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
