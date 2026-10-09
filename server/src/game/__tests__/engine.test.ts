@@ -21,16 +21,30 @@ function mkCards(specs: string[]): Card[] {
 // Helper: bikin game dengan kartu ronde terkontrol lewat rng palsu
 // Kita pakai rng yang deterministik + override pool via start biasa lalu
 // tangkap kartu dari event, supaya prove pakai kartu yang benar.
-function makeGame(playerIds: string[], clock: FakeClock) {
+// rngOps: seed deterministik biar draw kartu sama tiap run (test gak flaky).
+function makeGame(playerIds: string[], clock: FakeClock, rngSeed?: number) {
   const events: EngineEvent[] = [];
   const game = new Game24(playerIds, {
     now: clock.now,
     challengeDeadlineMs: 45_000,
     proofDeadlineMs: 45_000,
     surrenderOpenMs: 30_000,
+    rng: rngSeed === undefined ? undefined : mulberry32(rngSeed),
     onEvent: (e) => events.push(e),
   });
   return { game, events };
+}
+
+// PRNG deterministik (mulberry32)
+function mulberry32(seed: number) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 function currentCards(events: EngineEvent[]): Card[] {
@@ -102,7 +116,7 @@ describe('engine — alur challenge & pembuktian', () => {
     expect(game.raise('p2')).toBe(true);
     expect(game.challenge('p3', 'p1')).toBe(true);
     // p1 bukti benar -> p3 (penantang) ambil 4 kartu
-    expect(game.prove('p1', expr!)).toBe(true);
+    expect(game.prove('p1', expr!).accepted).toBe(true);
     expect(game.cardCounts().p3).toBe(4);
   });
 
@@ -114,7 +128,7 @@ describe('engine — alur challenge & pembuktian', () => {
     game.raise('p2');
     game.challenge('p3', 'p1');
     // p1 bluff: ekspresi salah
-    expect(game.prove('p1', '1+1')).toBe(true);
+    expect(game.prove('p1', '1+1').accepted).toBe(true);
     expect(game.cardCounts().p1).toBe(4); // target (p1) ambil
   });
 
@@ -154,7 +168,7 @@ describe('engine — semua raise (all-raise)', () => {
     game.raise('p2');
     game.raise('p3'); // last raiser = p3
     // p3 bukti benar -> hangus, tidak ada yang ambil
-    expect(game.prove('p3', expr!)).toBe(true);
+    expect(game.prove('p3', expr!).accepted).toBe(true);
     const counts = game.cardCounts();
     expect(counts.p1).toBe(0);
     expect(counts.p2).toBe(0);
@@ -168,7 +182,7 @@ describe('engine — semua raise (all-raise)', () => {
     game.raise('p1');
     game.raise('p2');
     game.raise('p3');
-    expect(game.prove('p3', '9+9')).toBe(true); // invalid
+    expect(game.prove('p3', '9+9').accepted).toBe(true); // invalid
     expect(game.cardCounts().p3).toBe(4);
   });
 });
@@ -192,7 +206,7 @@ describe('engine — surrender', () => {
     expect(game.surrender('p3')).toBe(true);
     expect(game.raise('p1')).toBe(true);
     expect(game.challenge('p2', 'p1')).toBe(true);
-    expect(game.prove('p1', expr!)).toBe(true);
+    expect(game.prove('p1', expr!).accepted).toBe(true);
     // p1 bukti benar -> p2 (penantang) ambil; p3 (surrender) tidak kena
     expect(game.cardCounts().p2).toBe(4);
     expect(game.cardCounts().p3).toBe(0);
@@ -259,10 +273,10 @@ describe('engine — akhir game & pemenang', () => {
 
   it('tie -> semua kalah (tidak ada pemenang)', () => {
     const clock = new FakeClock();
-    const { game, events } = makeGame(['p1', 'p2'], clock);
+    const { game, events } = makeGame(['p1', 'p2'], clock, 777); // seed deterministik
     game.start();
-    // bergantian: ronde ganjil p1 ambil, genap p2 ambil -> tie
-    for (let round = 0; round < 10; round++) {
+    // bergantian: ronde ganjil p1 ambil, genap p2 ambil -> tie (kalo genap jumlah ronde)
+    for (let round = 0; round < 20; round++) {
       if (game.snapshot().phase === 'GAME_OVER') break;
       const even = round % 2 === 0;
       const taker = even ? 'p1' : 'p2';
@@ -273,7 +287,17 @@ describe('engine — akhir game & pemenang', () => {
     }
     const over = events.find((e) => e.type === 'game_over');
     if (over?.type === 'game_over') {
-      expect(over.winnerId).toBeNull(); // tie -> tidak ada pemenang
+      const counts = game.cardCounts();
+      const c1 = counts.p1 ?? 0;
+      const c2 = counts.p2 ?? 0;
+      // kalo jumlah kartu akhir sama -> tie -> tidak ada pemenang
+      if (c1 === c2) {
+        expect(over.winnerId).toBeNull();
+      } else {
+        // kalo ganjil ronde, yang lebih sedikit menang (bukan tie)
+        const fewer = c1 < c2 ? 'p1' : 'p2';
+        expect(over.winnerId).toBe(fewer);
+      }
     }
   });
 });

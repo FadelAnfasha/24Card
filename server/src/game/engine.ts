@@ -195,9 +195,9 @@ export class Game24 {
     return true;
   }
 
-  prove(targetId: string, expression: string): boolean {
-    if (this.phase !== 'AWAIT_PROOF') return false;
-    if (targetId !== this.targetId) return false;
+  prove(targetId: string, expression: string): { accepted: boolean; proofValid?: boolean; reason?: string } {
+    if (this.phase !== 'AWAIT_PROOF') return { accepted: false };
+    if (targetId !== this.targetId) return { accepted: false };
 
     const result = validateExpression(expression, this.roundCards);
     if (result.valid) {
@@ -212,7 +212,7 @@ export class Game24 {
       // bluff -> target ambil kartu
       this.resolveRound(this.targetId, 'proof_invalid_target');
     }
-    return true;
+    return { accepted: true, proofValid: result.valid, reason: result.reason };
   }
 
   // ---------- clock ----------

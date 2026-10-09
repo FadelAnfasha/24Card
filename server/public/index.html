@@ -82,6 +82,15 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);color:var(--bone);padding:11px 18px;border-radius:10px;font-size:13.5px;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
 #toast.show{opacity:1}
 .timer{font-family:var(--font-d);font-size:12px;color:var(--gold);text-align:center;margin:6px 0}
+/* popup hasil pembuktian */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1000;padding:24px}
+.modal.show{display:flex}
+.mbox{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px 20px;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.mbox .emoji{font-size:44px;line-height:1;margin-bottom:10px}
+.mbox h3{font-size:19px;margin:0 0 6px}
+.mbox .why{font-size:14px;color:var(--bone-dim);margin:0 0 4px;line-height:1.5}
+.mbox .extra{font-size:12.5px;color:var(--bone-dim);opacity:.8;margin:6px 0 0}
+.mbox button{margin-top:18px;width:100%;padding:13px;border-radius:12px;border:0;background:var(--gold);color:#0c1a12;font-weight:700;font-size:15px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -204,6 +213,17 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
 
 <div id="toast"></div>
 
+<!-- popup hasil pembuktian -->
+<div class="modal" id="proofModal">
+  <div class="mbox">
+    <div class="emoji" id="pm-emoji">❓</div>
+    <h3 id="pm-title">Judul</h3>
+    <p class="why" id="pm-why">alasan</p>
+    <p class="extra" id="pm-extra"></p>
+    <button onclick="closeProofModal()">OK, mengerti</button>
+  </div>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const API = ''; // same origin
@@ -223,6 +243,16 @@ let deadlineTimer = null;
 // ---------- util ----------
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+// popup informatif hasil pembuktian
+function showProofResult(proofValid, reason){
+  const m=document.getElementById('proofModal');
+  document.getElementById('pm-emoji').textContent=proofValid?'✅':'❌';
+  document.getElementById('pm-title').textContent=proofValid?'Rumus Benar!':'Rumus Salah!';
+  document.getElementById('pm-why').textContent=proofValid?'Rumusmu valid dan hasilnya 24.':(reason||'Ekspresimu tidak valid.');
+  document.getElementById('pm-extra').textContent=proofValid?'':'4 kartu ronde jatuh kepadamu.';
+  m.classList.add('show');
+}
+function closeProofModal(){document.getElementById('proofModal').classList.remove('show');}
 const SUIT_CH={S:'♠',H:'♥',D:'♦',C:'♣'};
 const RED={H:1,D:1};
 function cardHTML(c){return `<div class="pcard ${RED[c.suit]?'red':''}"><span class="v">${c.rank}</span><span class="s">${SUIT_CH[c.suit]}</span></div>`;}
@@ -429,8 +459,8 @@ function renderTray(){
   if(!left.length){tray.innerHTML='<span class="mini">semua kartu di strip — tap token utk kembalikan</span>';return;}
   tray.innerHTML=left.map(x=>`<div class="pcard ${RED[x.c.suit]?'red':''}" data-idx="${x.i}"><span class="v">${x.c.rank}</span><span class="s">${SUIT_CH[x.c.suit]}</span></div>`).join('');
   tray.querySelectorAll('.pcard').forEach(el=>{
-    el.addEventListener('pointerdown',startDrag);
-    el.addEventListener('click',()=>{addCard(+el.dataset.idx);});
+    el.addEventListener('pointerdown',e=>startDrag(e,{k:'c',i:+el.dataset.idx}));
+    el.addEventListener('click',()=>{if(suppressClick)return;addCard(+el.dataset.idx);});
   });
 }
 function renderStrip(){
@@ -449,19 +479,26 @@ function renderOps(){
   const ops=document.getElementById('ops');
   const syms=['+','−','×','÷','(',')'];
   ops.innerHTML=syms.map(s=>`<button class="opb" data-op="${s}">${s}</button>`).join('')+`<button class="opb wide" id="undo">⌫ hapus</button>`;
-  ops.querySelectorAll('.opb[data-op]').forEach(b=>b.addEventListener('click',()=>{bState.push({k:'o',ch:b.dataset.op});renderBuilder();}));
+  ops.querySelectorAll('.opb[data-op]').forEach(b=>{
+    b.style.touchAction='none'; // biar drag di layar sentuh jalan
+    b.addEventListener('pointerdown',e=>startDrag(e,{k:'o',ch:b.dataset.op}));
+    // tap cepat juga tetap nambah operator (drag = geser ke strip)
+    b.addEventListener('click',()=>{if(suppressClick)return;bState.push({k:'o',ch:b.dataset.op});renderBuilder();});
+  });
   document.getElementById('undo').addEventListener('click',()=>{bState.pop();renderBuilder();});
 }
 function addCard(i){if(placedCardIdx().includes(i))return;bState.push({k:'c',i});renderBuilder();}
-// drag
-let ghost=null,dragIdx=null,suppressClick=false;
-function startDrag(e){
-  const el=e.currentTarget;dragIdx=+el.dataset.idx;
+// drag generik: dukung kartu & operator — clone jadi ghost, lepas di strip = tambah
+let ghost=null,suppressClick=false;
+function inStrip(ev){const r=document.getElementById('strip').getBoundingClientRect();return ev.clientX>=r.left-40&&ev.clientX<=r.right+40&&ev.clientY>=r.top-40&&ev.clientY<=r.bottom+40;}
+function dropToStrip(d){if(!d)return;if(d.k==='c'){if(placedCardIdx().includes(d.i))return;bState.push({k:'c',i:d.i});}else{bState.push({k:'o',ch:d.ch});}renderBuilder();}
+function startDrag(e,payload){
+  const el=e.currentTarget;
   let moved=false,sx=e.clientX,sy=e.clientY;
   ghost=el.cloneNode(true);ghost.className+=' ghostdrag';ghost.style.width=el.offsetWidth+'px';document.body.appendChild(ghost);
   const strip=document.getElementById('strip');
-  function mv(ev){if(Math.abs(ev.clientX-sx)>8||Math.abs(ev.clientY-sy)>8)moved=true;if(!ghost)return;ghost.style.left=(ev.clientX-30)+'px';ghost.style.top=(ev.clientY-43)+'px';const r=strip.getBoundingClientRect();strip.classList.toggle('hot',ev.clientX>=r.left-40&&ev.clientX<=r.right+40&&ev.clientY>=r.top-40&&ev.clientY<=r.bottom+40);}
-  function up(ev){document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);if(ghost){ghost.remove();ghost=null;}strip.classList.remove('hot');if(moved){suppressClick=true;setTimeout(()=>suppressClick=false,160);const r=strip.getBoundingClientRect();if(ev.clientX>=r.left-40&&ev.clientX<=r.right+40&&ev.clientY>=r.top-40&&ev.clientY<=r.bottom+40)addCard(dragIdx);}}
+  function mv(ev){if(Math.abs(ev.clientX-sx)>8||Math.abs(ev.clientY-sy)>8)moved=true;if(!ghost)return;ghost.style.left=(ev.clientX-30)+'px';ghost.style.top=(ev.clientY-43)+'px';strip.classList.toggle('hot',inStrip(ev));}
+  function up(ev){document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);if(ghost){ghost.remove();ghost=null;}strip.classList.remove('hot');if(moved){suppressClick=true;setTimeout(()=>suppressClick=false,160);if(inStrip(ev))dropToStrip(payload);}}
   mv(e);document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);
 }
 // validasi client-side (feedback UX; server tetap otoritatif)
@@ -495,11 +532,13 @@ function evalStrict(expr){
   const out=expr_();if(pos!==tokens.length)return{err:'syn'};return out;
 }
 function submitProof(){
-  const g=roomState.game;
-  // kirim rank asli kartu (bukan nilai client) — server yang interpret As
   const expr=bState.map(t=>t.k==='c'?String(bCards[t.i].rank==='A'?1:bCards[t.i].rank):t.ch.replace('×','*').replace('÷','/').replace('−','-')).join('');
   if(!expr){toast('Susun dulu rumusnya');return;}
-  socket.emit('round:prove',{expression:expr},(r)=>{if(r.error)toast(r.error);else toast('Bukti terkirim');});
+  socket.emit('round:prove',{expression:expr},(r)=>{
+    if(r.error){toast(r.error);return;}
+    // popup informatif: benar/salah + alasan detail dari server
+    showProofResult(r.proofValid, r.reason);
+  });
 }
 
 // ---------- leaderboard ----------
