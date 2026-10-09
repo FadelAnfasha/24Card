@@ -54,6 +54,9 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
 .tokc{background:var(--bone);color:var(--ink);border-radius:8px;font-family:var(--font-d);font-weight:700;font-size:16px;padding:8px 9px;cursor:pointer;line-height:1;box-shadow:0 3px 7px rgba(0,0,0,.3)}
 .tokc i{font-style:normal;font-size:11px;margin-left:1px}
 .tokc.red{color:var(--sred)}
+.tokc.ace{display:flex;align-items:center;gap:4px;padding:6px 7px}
+.tokc.ace .tv{font-size:16px}
+.tokc.ace .tg{background:rgba(0,0,0,.14);border-radius:6px;font-size:12px;padding:3px 5px;cursor:pointer;margin-left:2px;touch-action:manipulation}
 .toko{color:var(--gold);font-family:var(--font-d);font-weight:700;font-size:18px;cursor:pointer;padding:5px 3px;line-height:1}
 .tray{display:flex;justify-content:center;gap:10px;margin-bottom:10px;min-height:88px;align-items:center;flex-wrap:wrap}
 .tray .pcard{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -178,7 +181,7 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
   <!-- prove builder (target only) -->
   <div id="g-prove" class="hidden">
     <h2 style="font-size:15px">Buktikan rumus</h2>
-    <p class="mini">Geser/tap kartu ke strip · sisipkan operator · tap token = hapus</p>
+    <p class="mini">Geser/tap kartu & operator ke strip · tap token = hapus · tap ⇄ di kartu As = ganti nilai 1/11</p>
     <div class="strip" id="strip"><span class="ph">geser / tap kartu ke sini…</span></div>
     <div class="tray" id="tray"></div>
     <div class="ops" id="ops"></div>
@@ -500,7 +503,15 @@ function renderStrip(){
   strip.innerHTML='';
   bState.forEach((t,idx)=>{
     const el=document.createElement('div');
-    if(t.k==='c'){const c=bCards[t.i];el.className='tokc'+(RED[c.suit]?' red':'');el.innerHTML=c.rank+'<i>'+SUIT_CH[c.suit]+'</i>';el.title='hapus';}
+    if(t.k==='c'){const c=bCards[t.i];el.className='tokc'+(RED[c.suit]?' red':'');
+      if(c.rank==='A'){
+        el.classList.add('ace');
+        el.innerHTML=`<span class="tv">${t.v??1}</span><i>${SUIT_CH[c.suit]}</i><span class="tg" title="ganti 1/11">⇄</span>`;
+        el.querySelector('.tg').addEventListener('click',(ev)=>{ev.stopPropagation();t.v=(t.v===1?11:1);renderBuilder();});
+      } else {
+        el.innerHTML=(t.v??c.rank)+'<i>'+SUIT_CH[c.suit]+'</i>';
+      }
+      el.title='hapus';}
     else{el.className='toko';el.textContent=t.ch;el.title='hapus';}
     el.addEventListener('click',()=>{bState.splice(idx,1);renderBuilder();});
     strip.appendChild(el);
@@ -518,11 +529,13 @@ function renderOps(){
   });
   document.getElementById('undo').addEventListener('click',()=>{bState.pop();renderBuilder();});
 }
-function addCard(i){if(placedCardIdx().includes(i))return;bState.push({k:'c',i});renderBuilder();}
+function addCard(i){if(placedCardIdx().includes(i))return;bState.push({k:'c',i,v:cardDefaultVal(i)});renderBuilder();}
+// nilai awal kartu: As = 1 (bisa ditoggle ke 11), lain = angka mukanya
+function cardDefaultVal(i){return bCards[i].rank==='A'?1:Number(bCards[i].rank);}
 // drag generik: dukung kartu & operator — clone jadi ghost, lepas di strip = tambah
 let ghost=null,suppressClick=false;
 function inStrip(ev){const r=document.getElementById('strip').getBoundingClientRect();return ev.clientX>=r.left-40&&ev.clientX<=r.right+40&&ev.clientY>=r.top-40&&ev.clientY<=r.bottom+40;}
-function dropToStrip(d){if(!d)return;if(d.k==='c'){if(placedCardIdx().includes(d.i))return;bState.push({k:'c',i:d.i});}else{bState.push({k:'o',ch:d.ch});}renderBuilder();}
+function dropToStrip(d){if(!d)return;if(d.k==='c'){if(placedCardIdx().includes(d.i))return;bState.push({k:'c',i:d.i,v:cardDefaultVal(d.i)});}else{bState.push({k:'o',ch:d.ch});}renderBuilder();}
 function startDrag(e,payload){
   const el=e.currentTarget;
   let moved=false,sx=e.clientX,sy=e.clientY;
@@ -534,7 +547,7 @@ function startDrag(e,payload){
 }
 // validasi client-side (feedback UX; server tetap otoritatif)
 function builderExpr(){
-  return bState.map(t=>t.k==='c'?String(bCards[t.i].rank==='A'?1:bCards[t.i].rank):t.ch.replace('×','*').replace('÷','/').replace('−','-')).join('');
+  return bState.map(t=>t.k==='c'?String(t.v??cardDefaultVal(t.i)):t.ch.replace('×','*').replace('÷','/').replace('−','-')).join('');
 }
 function validateBuilder(){
   const checks=document.getElementById('checks');
@@ -563,7 +576,7 @@ function evalStrict(expr){
   const out=expr_();if(pos!==tokens.length)return{err:'syn'};return out;
 }
 function submitProof(){
-  const expr=bState.map(t=>t.k==='c'?String(bCards[t.i].rank==='A'?1:bCards[t.i].rank):t.ch.replace('×','*').replace('÷','/').replace('−','-')).join('');
+  const expr=bState.map(t=>t.k==='c'?String(t.v??cardDefaultVal(t.i)):t.ch.replace('×','*').replace('÷','/').replace('−','-')).join('');
   if(!expr){toast('Susun dulu rumusnya');return;}
   socket.emit('round:prove',{expression:expr},(r)=>{
     if(r.error){toast(r.error);return;}
