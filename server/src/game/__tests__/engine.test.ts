@@ -40,32 +40,48 @@ function currentCards(events: EngineEvent[]): Card[] {
   return last.cards;
 }
 
-// Cari ekspresi valid sederhana buat 4 kartu ronde (solver-style brute force kecil)
+// Cari ekspresi valid buat 4 kartu ronde. Enumerate A=1/11 lalu semua
+// kombinasi operator + 5 bentuk pohon; validasi pakai validator asli.
 function findExpr(cards: Card[]): string | null {
-  const ranks = cards.map((c) => (c.rank === 'A' ? ['1', '11'] : [c.rank]));
-  const perms = (arr: string[][]): string[][] =>
-    arr.length === 0 ? [[]] : arr.flatMap((opts, i) => perms([...arr.slice(0, i), ...arr.slice(i + 1)]).map((rest) => [opts[0]!, ...rest]));
+  const optionsPerCard = cards.map((c) => (c.rank === 'A' ? ['1', '11'] : [c.rank]));
+
+  // cartesian product semua penugasan nilai (A bisa 1 atau 11)
+  function combos(opts: string[][]): string[][] {
+    if (opts.length === 0) return [[]];
+    const [first, ...rest] = opts;
+    const restCombos = combos(rest);
+    return first!.flatMap((f) => restCombos.map((rc) => [f, ...rc]));
+  }
+
+  // semua permutasi unik dari 4 nilai (dedupe nilai identik)
+  function perms(arr: string[]): string[][] {
+    if (arr.length <= 1) return [arr];
+    const out: string[][] = [];
+    const seen = new Set<string>();
+    for (let i = 0; i < arr.length; i++) {
+      const v = arr[i]!;
+      if (seen.has(v)) continue;
+      seen.add(v);
+      for (const rest of perms([...arr.slice(0, i), ...arr.slice(i + 1)])) out.push([v, ...rest]);
+    }
+    return out;
+  }
+
   const ops = ['+', '-', '*', '/'];
-  const strict = (a: number, op: string, b: number): number | null => {
-    if (op === '+') return a + b;
-    if (op === '-') return a - b;
-    if (op === '*') return a * b;
-    if (b !== 0 && a % b === 0) return a / b;
-    return null;
-  };
-  for (const p of perms(ranks)) {
-    const [w, x, y, z] = p as [string, string, string, string];
-    for (const o1 of ops) for (const o2 of ops) for (const o3 of ops) {
-      const shapes: string[] = [
-        `((${w}${o1}${x})${o2}${y})${o3}${z}`,
-        `(${w}${o1}(${x}${o2}${y}))${o3}${z}`,
-        `(${w}${o1}${x})${o2}(${y}${o3}${z})`,
-        `${w}${o1}((${x}${o2}${y})${o3}${z})`,
-        `${w}${o1}(${x}${o2}(${y}${o3}${z}))`,
-      ];
-      for (const s of shapes) {
-        const r = validateExpression(s, cards);
-        if (r.valid) return s;
+  for (const vals of combos(optionsPerCard)) {
+    for (const p of perms(vals)) {
+      const [w, x, y, z] = p as [string, string, string, string];
+      for (const o1 of ops) for (const o2 of ops) for (const o3 of ops) {
+        const shapes: string[] = [
+          `((${w}${o1}${x})${o2}${y})${o3}${z}`,
+          `(${w}${o1}(${x}${o2}${y}))${o3}${z}`,
+          `(${w}${o1}${x})${o2}(${y}${o3}${z})`,
+          `${w}${o1}((${x}${o2}${y})${o3}${z})`,
+          `${w}${o1}(${x}${o2}(${y}${o3}${z}))`,
+        ];
+        for (const s of shapes) {
+          if (validateExpression(s, cards).valid) return s;
+        }
       }
     }
   }

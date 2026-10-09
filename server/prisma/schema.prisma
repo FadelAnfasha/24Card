@@ -1,0 +1,70 @@
+// Schema DB 24Card — lihat Architecture.md §6
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String?  @default("") // NULL/kosong = guest
+  isGuest      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  gamesPlayed  Int      @default(0)
+  wins         Int      @default(0)
+  winRate      Decimal  @default(0) @db.Decimal(5, 2)
+
+  gamesPlayedRel GamePlayer[]
+  gamesWon       Game[]       @relation("GameWinner")
+  roundsAsPenalty Round[]     @relation("PenaltyHolder")
+}
+
+model Game {
+  id        String    @id @default(uuid())
+  roomCode  String
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  winnerId  String?
+  winner    User?     @relation("GameWinner", fields: [winnerId], references: [id])
+  status    String    @default("in_progress") // in_progress | finished | aborted
+
+  players GamePlayer[]
+  rounds  Round[]
+}
+
+model GamePlayer {
+  gameId         String
+  userId         String
+  seat           Int
+  finalCardCount Int?
+  placement      Int? // NULL = tie (kalah)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([gameId, userId])
+}
+
+model Round {
+  id               String   @id @default(uuid())
+  gameId           String
+  roundNo          Int
+  cards            Json // [{id,suit,rank}]
+  raisedPlayers    Json // [userId]
+  challengerId     String?
+  targetId         String?
+  proofExpression  String?
+  proofValid       Boolean?
+  penaltyUserId    String?
+  penaltyHolder    User?    @relation("PenaltyHolder", fields: [penaltyUserId], references: [id])
+  hangus           Boolean  @default(false)
+
+  game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
+
+  @@index([gameId])
+}

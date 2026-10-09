@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: twentycard-postgres
+    environment:
+      POSTGRES_DB: twentycard
+      POSTGRES_USER: twentycard
+      POSTGRES_PASSWORD: twentycard_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U twentycard -d twentycard"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
