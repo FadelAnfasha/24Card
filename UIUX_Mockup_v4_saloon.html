@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>24Card — Saloon Texas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#160e06; --bg2:#1f1409; --wood:#3a2614; --wood2:#4b3119; --wood3:#5c3d22;
+  --leather:#6b4423; --paper:#f0e2c0; --paper2:#e2cfa0;
+  --amber:#d99a3a; --amber-hot:#f2b95c; --red:#a8352b; --red2:#8f2a22;
+  --ink:#2a1a0c; --cream:#f3e7c9; --muted:#a5885c; --line:#5a3d1f;
+  --fd:'Rye',cursive; --fs:'Special Elite',monospace; --fb:'Roboto Slab',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:
+  radial-gradient(900px 600px at 50% -5%,#3a2612 0%,transparent 55%),
+  radial-gradient(700px 500px at 10% 110%,#241608 0%,transparent 50%),
+  var(--bg);
+  color:var(--cream);font-family:var(--fb);min-height:100vh;padding:26px 16px 70px;position:relative}
+/* kayu + vignette */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(0,0,0,.12) 22px 24px)}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;box-shadow:inset 0 0 240px rgba(10,5,0,.9)}
+.wrap{max-width:1180px;margin:0 auto;position:relative;z-index:1}
+header{text-align:center;margin-bottom:24px}
+.sign{display:inline-block;background:linear-gradient(180deg,var(--wood2),var(--wood));border:3px solid var(--line);
+  border-radius:8px;padding:14px 26px;box-shadow:0 8px 22px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,220,150,.15);position:relative}
+.sign::before,.sign::after{content:"✦";position:absolute;top:50%;transform:translateY(-50%);color:var(--amber);font-size:14px}
+.sign::before{left:9px}.sign::after{right:9px}
+h1{font-family:var(--fd);font-size:30px;letter-spacing:.5px;color:var(--amber-hot);text-shadow:0 2px 0 #2a180a,0 0 18px rgba(217,154,58,.35);display:flex;align-items:center;gap:12px}
+.star{width:44px;height:44px;background:radial-gradient(circle at 35% 30%,var(--amber-hot),var(--amber));color:#3a2408;
+  clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  display:grid;place-items:center;font-family:var(--fd);font-size:15px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.sub{color:var(--muted);font-family:var(--fs);margin-top:10px;font-size:14px;letter-spacing:.5px}
+.tag{display:inline-block;margin-top:12px;font-family:var(--fs);font-size:12px;color:var(--cream);background:var(--red);
+  padding:7px 15px;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.4),inset 0 0 0 2px rgba(0,0,0,.2);letter-spacing:.5px}
+
+.stage{display:flex;flex-wrap:wrap;gap:30px;justify-content:center;margin-top:34px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:12px;align-items:center}
+.cap{font-family:var(--fd);text-align:center;max-width:360px}
+.cap .n{color:var(--amber);font-size:11px;letter-spacing:1px;font-family:var(--fs)}
+.cap h3{font-size:16px;font-weight:400;margin-top:3px;color:var(--cream);text-shadow:0 1px 0 #000}
+.cap p{color:var(--muted);font-family:var(--fb);font-size:12.8px;margin-top:4px;line-height:1.45}
+
+/* phone = bingkai kayu saloon */
+.phone{width:360px;height:auto;min-height:650px;border-radius:20px;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#2a1c0f,#1c1208);border:8px solid var(--wood3);
+  box-shadow:0 0 0 2px var(--line),0 20px 44px rgba(0,0,0,.6),inset 0 0 40px rgba(0,0,0,.5);
+  display:flex;flex-direction:column}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:112px;height:20px;background:#120a04;border-radius:0 0 13px 13px;z-index:20;border:2px solid var(--line);border-top:0}
+.body{flex:1;padding:30px 18px 24px;display:flex;flex-direction:column;overflow:hidden}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.pill{font-family:var(--fs);font-size:12px;background:var(--wood);border:1.5px solid var(--line);padding:7px 12px;border-radius:5px;color:var(--muted);box-shadow:inset 0 1px 0 rgba(255,220,150,.1)}
+.pill b{color:var(--amber)}
+.ring{position:relative;width:46px;height:46px}
+.ring svg{transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--fd);font-size:14px;color:var(--amber-hot);text-shadow:0 1px 2px #000}
+.ring circle{fill:none;stroke-width:5;stroke-linecap:round}
+.ring .bg{stroke:var(--line)}
+.ring .fg{stroke:url(#gr);stroke-dasharray:126;transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 3px rgba(217,154,58,.6))}
+
+.round-tag{text-align:center;font-family:var(--fd);font-size:13px;color:var(--amber);letter-spacing:.5px;margin-bottom:8px;text-shadow:0 1px 0 #000}
+.round-tag b{color:var(--cream)}
+
+/* meja kayu */
+.table{display:flex;justify-content:center;gap:10px;margin:6px 0 4px;perspective:800px;
+  background:linear-gradient(180deg,rgba(0,0,0,.15),transparent);border-radius:12px;padding:10px 6px}
+.pcard{width:60px;height:84px;background:linear-gradient(165deg,#f6ecc9,#dfc99b);border-radius:9px;position:relative;
+  border:1px solid #b8975e;box-shadow:0 6px 12px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.25);color:var(--ink);
+  font-family:var(--fd);display:flex;flex-direction:column;justify-content:space-between;padding:7px 8px;flex-shrink:0}
+.pcard.red{color:var(--red)}
+.pcard .v{font-size:21px;line-height:1}
+.pcard .s{font-size:19px;align-self:flex-end;line-height:1}
+.pcard.deal{animation:deal .5s cubic-bezier(.2,.8,.25,1) backwards}
+@keyframes deal{from{transform:translateY(-40px) rotateX(70deg) scale(.7);opacity:0}}
+
+.hint{text-align:center;color:var(--muted);font-family:var(--fs);font-size:10.5px;letter-spacing:.3px;margin:12px 0 8px}
+
+.strip{min-height:60px;background:rgba(0,0,0,.22);border:2px dashed var(--line);border-radius:11px;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:7px;padding:9px;margin-bottom:9px;transition:.2s}
+.strip.hot{border-color:var(--amber);border-style:solid;background:rgba(217,154,58,.1);box-shadow:0 0 14px rgba(217,154,58,.3)}
+.strip .ph{color:#8a6f45;font-family:var(--fs);font-size:11px}
+.tokc{background:linear-gradient(165deg,#f6ecc9,#dfc99b);border:1px solid #b8975e;color:var(--ink);border-radius:8px;
+  font-family:var(--fd);font-size:14px;padding:8px 9px;line-height:1;box-shadow:0 4px 8px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.25);animation:pop .18s ease}
+.tokc.red{color:var(--red)}
+.tokc i{font-style:normal;font-size:11px;margin-left:1px}
+.tokc .tg{background:var(--red);color:var(--cream);border-radius:5px;font-size:10px;padding:3px 5px;margin-left:3px;cursor:pointer;display:inline-block;font-family:var(--fs)}
+.toko{color:var(--amber-hot);font-family:var(--fd);font-size:19px;padding:4px 3px;animation:pop .18s ease;text-shadow:0 1px 2px #000}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+
+.tray{display:flex;justify-content:center;gap:9px;margin-bottom:11px;min-height:84px;align-items:center;flex-wrap:wrap}
+.tray .pcard{cursor:grab;touch-action:none;transition:transform .15s}
+.tray .pcard:active{transform:scale(1.08)}
+.ops{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:11px}
+.opb{background:linear-gradient(180deg,var(--wood3),var(--wood));border:1.5px solid var(--line);color:var(--amber-hot);
+  font-family:var(--fd);font-size:16px;width:45px;height:41px;border-radius:8px;cursor:pointer;touch-action:none;
+  box-shadow:0 3px 7px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,220,150,.15);transition:transform .1s}
+.opb:active{transform:scale(.9)}
+.opb.wide{width:auto;padding:0 13px;font-size:11px;color:var(--muted);font-family:var(--fs)}
+
+.checks{display:flex;flex-direction:column;gap:5px;margin-bottom:11px}
+.stat{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.stat .tick{width:17px;height:17px;border-radius:4px;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:var(--fs)}
+.stat.ok{color:var(--cream)}.stat.ok .tick{background:#5a7d3a;color:#eafce0;box-shadow:0 0 8px rgba(120,160,70,.3)}
+.stat.no .tick{background:var(--red2);color:#f3d9d5}
+.stat.bad{color:#e0a89f}
+
+.send{width:100%;padding:15px;border:0;border-radius:9px;font-family:var(--fd);font-size:14px;letter-spacing:.5px;
+  background:linear-gradient(180deg,var(--red),var(--red2));color:var(--cream);cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,180,150,.2),inset 0 0 0 2px rgba(0,0,0,.15);transition:transform .12s,box-shadow .2s}
+.send:disabled{background:linear-gradient(180deg,var(--wood2),var(--wood));color:#9a7d4f;box-shadow:inset 0 0 0 2px rgba(0,0,0,.15);cursor:not-allowed}
+.send:not(:disabled){animation:sendpulse 1.8s ease-in-out infinite}
+@keyframes sendpulse{0%,100%{box-shadow:0 6px 16px rgba(0,0,0,.45),0 0 0 rgba(217,154,58,0)}50%{box-shadow:0 6px 16px rgba(0,0,0,.45),0 0 22px rgba(217,154,58,.55)}}
+.send:not(:disabled):active{transform:scale(.96)}
+
+.plist{margin-top:auto;padding-top:10px;display:flex;flex-direction:column;gap:7px}
+.prow{display:flex;align-items:center;gap:10px;background:var(--wood);border:1.5px solid var(--line);padding:9px 11px;border-radius:9px;box-shadow:inset 0 1px 0 rgba(255,220,150,.08)}
+.prow.me{border-color:var(--amber);background:#3a2a12}
+.prow .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(180deg,var(--wood3),var(--wood));display:grid;place-items:center;font-family:var(--fd);font-size:12px;flex-shrink:0;color:var(--amber);border:1.5px solid var(--line)}
+.prow .nm{font-size:14px;font-weight:700;flex:1}
+.prow .cnt{font-family:var(--fs);font-size:11px;color:var(--muted)}
+.badge{font-family:var(--fs);font-size:10px;padding:3px 8px;border-radius:4px;letter-spacing:.3px;animation:slidein .3s ease}
+@keyframes slidein{from{transform:translateX(16px);opacity:0}}
+.badge.up{background:#4d6b2e;color:#eafce0}
+.badge.host{background:var(--amber);color:#3a2408}
+.badge.think{background:var(--wood2);color:var(--muted)}
+.badge.bad{background:var(--red);color:#f3d9d5}
+
+.cele{position:absolute;inset:0;display:none;place-items:center;z-index:30;pointer-events:none}
+.cele.show{display:grid}
+.cele .big24{font-family:var(--fd);font-size:100px;color:var(--amber-hot);
+  text-shadow:0 3px 0 #2a180a,0 0 26px rgba(217,154,58,.5);animation:bigno .6s cubic-bezier(.2,.9,.3,1);
+  border:6px double var(--amber);padding:10px 22px;border-radius:12px;background:rgba(28,18,8,.6)}
+@keyframes bigno{0%{transform:scale(0) rotate(-14deg);opacity:0}60%{transform:scale(1.12) rotate(4deg)}100%{transform:scale(1)}}
+.confetti{position:absolute;width:10px;height:14px;top:50%;left:50%;border-radius:2px}
+
+.mini-count{display:flex;align-items:center;gap:14px;justify-content:center;background:linear-gradient(180deg,var(--wood2),var(--wood));border:2px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.mini-count .ring{width:60px;height:60px}
+.mini-count .ring .num{font-size:20px}
+
+.raise-demo{background:linear-gradient(180deg,var(--wood2),var(--wood));border:2px solid var(--line);border-radius:12px;padding:16px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.raisebtn{width:100%;padding:14px;border:0;border-radius:9px;font-family:var(--fd);font-size:14px;letter-spacing:.5px;
+  background:linear-gradient(180deg,#5a7d3a,#41602a);color:#eafce0;cursor:pointer;box-shadow:0 5px 14px rgba(0,0,0,.4),inset 0 1px 0 rgba(220,255,180,.2);transition:transform .12s}
+.raisebtn.pulse{animation:raise 1.6s ease-in-out infinite}
+@keyframes raise{0%,100%{box-shadow:0 5px 14px rgba(0,0,0,.4)}50%{box-shadow:0 5px 14px rgba(0,0,0,.4),0 0 20px rgba(140,190,80,.6)}}
+.raisebtn:active{transform:scale(.96)}
+.raised-note{font-family:var(--fs);font-size:11px;color:#a6d66a;margin-top:9px;opacity:0;transition:opacity .3s}
+.raised-note.on{opacity:1}
+
+.footer{text-align:center;color:var(--muted);font-family:var(--fs);font-size:11px;margin-top:44px;letter-spacing:.5px}
+.footer b{color:var(--amber)}
+.ghostdrag{position:fixed;pointer-events:none;opacity:.96;z-index:99;transform:scale(1.08) rotate(-5deg);filter:drop-shadow(0 8px 14px rgba(0,0,0,.5))}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:430px){
+  body{padding:16px 10px 50px;overflow-x:hidden}
+  .sign{padding:11px 18px}h1{font-size:23px}.star{width:38px;height:38px;font-size:13px}
+  .stage{gap:18px}.col{width:100%;max-width:360px}.phone{width:100%;max-width:100%}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0"><defs><linearGradient id="gr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2b95c"/><stop offset="1" stop-color="#a8352b"/></linearGradient></defs></svg>
+<div class="wrap">
+  <header>
+    <div class="sign">
+      <h1><span class="star">24</span> 24CARD · SALOON</h1>
+    </div>
+    <p class="sub">Kelabisi lawan · gertak · raup 24</p>
+    <span class="tag">▶ MAIN BENERAN — TAP &amp; DRAG, BUKAN GAMBAR</span>
+  </header>
+
+  <div class="stage">
+    <!-- HERO -->
+    <div class="col">
+      <div class="cap"><div class="n">MEJA UTAMA · INTERAKTIF</div><h3>Susun Rumus &amp; Tangkap 24</h3>
+        <p>Geser kartu + operator ke meja · tap ⇄ di As ganti 1/11 · dapet 24 → KIRIM → menang. Coba!</p></div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="body">
+          <div class="topbar">
+            <div class="pill">RONDE <b>3</b>/10 · SISA <b>28</b></div>
+            <div class="ring"><svg width="46" height="46"><circle class="bg" cx="23" cy="23" r="20"/><circle class="fg" cx="23" cy="23" r="20"/></svg><div class="num">45</div></div>
+          </div>
+          <div class="round-tag">Buktikan Rumusmu</div>
+          <div class="table" id="table"></div>
+          <div class="hint">GESER DARI TANGANMU KE MEJA · TAP TOKEN = HAPUS · TAP ⇄ DI AS</div>
+          <div class="strip" id="strip"><span class="ph">taruh kartu di sini…</span></div>
+          <div class="tray" id="tray"></div>
+          <div class="ops" id="ops"></div>
+          <div class="checks" id="checks"></div>
+          <button class="send" id="send" disabled>Kirim Bukti</button>
+          <div class="plist">
+            <div class="prow me"><div class="av">A</div><div class="nm">Kamu</div><span class="badge up">RAISE ⬆</span><div class="cnt">0</div></div>
+            <div class="prow"><div class="av">B</div><div class="nm">Budi</div><span class="badge think">mikir</span><div class="cnt">2</div></div>
+          </div>
+        </div>
+        <div class="cele" id="cele"><div class="big24">24!</div></div>
+      </div>
+    </div>
+
+    <!-- side -->
+    <div class="col">
+      <div class="cap"><div class="n">MOMEN · GERTAK &amp; TANTANG</div><h3>Gertak, Lalu Tantang</h3>
+        <p>Tombol raise berdenyut. Sisa satu belum raise → dia wajib menantang.</p></div>
+      <div class="phone" style="min-height:auto;padding-bottom:6px">
+        <div class="notch"></div>
+        <div class="body" style="gap:14px;padding-bottom:14px">
+          <div class="round-tag">Siapa Bisa 24?</div>
+          <div class="raise-demo">
+            <button class="raisebtn pulse" id="raiseBtn">✋ Raise Hand</button>
+            <div class="raised-note" id="raisedNote">Kamu raise — Budi tinggal pilih lawan</div>
+          </div>
+          <div class="plist" style="margin-top:0">
+            <div class="prow me"><div class="av">A</div><div class="nm">Kamu</div><span class="badge up">RAISE ⬆</span><div class="cnt">0</div></div>
+            <div class="prow"><div class="av">B</div><div class="nm">Budi</div><span class="badge host">MENANTANG</span><div class="cnt">2</div></div>
+            <div class="prow"><div class="av">C</div><div class="nm">Citra</div><span class="badge up">RAISE ⬆</span><div class="cnt">1</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cap"><div class="n">MOMEN · HITUNG MUNDUR ADIL</div><h3>Mulai Bareng</h3>
+        <p>Sinkron jam server — semua HP angkanya sama.</p></div>
+      <div class="mini-count">
+        <div class="ring"><svg width="60" height="60"><circle class="bg" cx="30" cy="30" r="25"/><circle class="fg" id="cdFg" cx="30" cy="30" r="25" style="stroke-dasharray:157"/></svg><div class="num" id="cdNum">5</div></div>
+        <div style="font-family:var(--fs);font-size:12px">Game mulai…<br><span style="color:var(--muted);font-size:10px">siap-siap</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">DECK 40 (A+2–10) · A=1/11 · PEMBAGIAN BULAT · SOLVABLE ONLY — <b>24CARD SALOON</b></div>
+</div>
+
+<script>
+const SUIT={S:'♠',H:'♥',D:'♦',C:'♣'},RED={H:1,D:1};
+let hand=[{rank:'A',suit:'H'},{rank:'3',suit:'S'},{rank:'4',suit:'D'},{rank:'6',suit:'C'}];
+const table=document.getElementById('table');
+hand.forEach((c,i)=>{const el=document.createElement('div');el.className='pcard'+(RED[c.suit]?' red':'')+' deal';el.style.animationDelay=(i*.09)+'s';
+  el.innerHTML=`<span class="v">${c.rank}</span><span class="s">${SUIT[c.suit]}</span>`;table.appendChild(el)});
+let bState=[];const strip=document.getElementById('strip'),tray=document.getElementById('tray'),ops=document.getElementById('ops'),checks=document.getElementById('checks'),send=document.getElementById('send');
+function defV(i){return hand[i].rank==='A'?1:Number(hand[i].rank)}
+function placed(){return bState.filter(t=>t.k==='c').map(t=>t.i)}
+function renderTray(){const p=placed();const left=hand.map((c,i)=>({c,i})).filter(x=>!p.includes(x.i));
+  if(!left.length){tray.innerHTML='<span class="ph" style="color:#6b5533;font-family:var(--fs);font-size:11px">semua kartu di meja</span>';return}
+  tray.innerHTML='';left.forEach(x=>{const el=document.createElement('div');el.className='pcard'+(RED[x.c.suit]?' red':'');
+    el.innerHTML=`<span class="v">${x.c.rank}</span><span class="s">${SUIT[x.c.suit]}</span>`;
+    el.addEventListener('pointerdown',e=>drag(e,{k:'c',i:x.i}));el.addEventListener('click',()=>{if(!suppress)addCard(x.i)});tray.appendChild(el)})}
+function addCard(i){if(placed().includes(i))return;bState.push({k:'c',i,v:defV(i)});render()}
+function renderStrip(){if(!bState.length){strip.innerHTML='<span class="ph">taruh kartu di sini…</span>';return}
+  strip.innerHTML='';bState.forEach((t,idx)=>{const el=document.createElement('div');
+    if(t.k==='c'){const c=hand[t.i];el.className='tokc'+(RED[c.suit]?' red':'');
+      if(c.rank==='A'){el.innerHTML=`<span>${t.v}</span><i>${SUIT[c.suit]}</i><span class="tg">⇄</span>`;
+        el.querySelector('.tg').addEventListener('click',ev=>{ev.stopPropagation();t.v=t.v===1?11:1;render()})}
+      else{el.innerHTML=`${t.v}<i>${SUIT[c.suit]}</i>`}}
+    else{el.className='toko';el.textContent=t.ch}
+    el.addEventListener('click',()=>{bState.splice(idx,1);render()});strip.appendChild(el)})}
+function renderOps(){const syms=['+','−','×','÷','(',')'];
+  ops.innerHTML=syms.map(s=>`<button class="opb" data-op="${s}">${s}</button>`).join('')+`<button class="opb wide" id="undo">⌫ HAPUS</button>`;
+  ops.querySelectorAll('.opb[data-op]').forEach(b=>{b.addEventListener('pointerdown',e=>drag(e,{k:'o',ch:b.dataset.op}));
+    b.addEventListener('click',()=>{if(!suppress){bState.push({k:'o',ch:b.dataset.op});render()}})});
+  document.getElementById('undo').addEventListener('click',()=>{bState.pop();render()})}
+let ghost=null,suppress=false;
+function inStrip(e){const r=strip.getBoundingClientRect();return e.clientX>=r.left-40&&e.clientX<=r.right+40&&e.clientY>=r.top-30&&e.clientY<=r.bottom+30}
+function drop(d){if(!d)return;if(d.k==='c'){if(!placed().includes(d.i))bState.push({k:'c',i:d.i,v:defV(d.i)})}else bState.push({k:'o',ch:d.ch});render()}
+function drag(e,payload){const el=e.currentTarget;let moved=false,sx=e.clientX,sy=e.clientY;
+  ghost=el.cloneNode(true);ghost.className+=' ghostdrag';ghost.style.width=el.offsetWidth+'px';document.body.appendChild(ghost);
+  function mv(ev){if(Math.abs(ev.clientX-sx)>8||Math.abs(ev.clientY-sy)>8)moved=true;if(!ghost)return;ghost.style.left=(ev.clientX-30)+'px';ghost.style.top=(ev.clientY-43)+'px';strip.classList.toggle('hot',inStrip(ev))}
+  function up(ev){document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);if(ghost){ghost.remove();ghost=null}strip.classList.remove('hot');if(moved){suppress=true;setTimeout(()=>suppress=false,150);if(inStrip(ev))drop(payload)}}
+  mv(e);document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up)}
+function expr(){return bState.map(t=>t.k==='c'?String(t.v):t.ch.replace('×','*').replace('÷','/').replace('−','-')).join('')}
+function evalStrict(s){const tk=s.match(/\d+|[+\-*/()]/g);if(!tk)return null;let p=0;const peek=()=>tk[p],eat=()=>tk[p++];
+  const f=()=>{const t=peek();if(t==='('){eat();const v=e();if(peek()!==')')return{err:1};eat();return v}if(t&&/\d/.test(t)){eat();return{v:+t}}return{err:1}};
+  const tm=()=>{let l=f();if(l.err)return l;while(peek()==='*'||peek()==='/'){const o=eat(),r=f();if(r.err)return r;if(o==='*')l={v:l.v*r.v};else{if(r.v===0||l.v%r.v!==0)return{err:'div'};l={v:l.v/r.v}}}return l};
+  const e=()=>{let l=tm();if(l.err)return l;while(peek()==='+'||peek()==='-'){const o=eat(),r=tm();if(r.err)return r;l={v:o==='+'?l.v+r.v:l.v-r.v}}return l};
+  const out=e();if(p!==tk.length)return{err:1};return out}
+function stat(ok,txt,bad){return `<div class="stat ${ok?'ok':'no'} ${bad?'bad':''}"><span class="tick">${ok?'✓':'✕'}</span>${txt}</div>`}
+function validate(){const n=placed().length;
+  if(!bState.length){checks.innerHTML='<div class="stat"><span class="tick" style="background:var(--wood2);color:var(--muted)">?</span>Susun rumus — target 24</div>';send.disabled=true;return}
+  const r=evalStrict(expr());let h=stat(1,'Ekspresi tersusun')+stat(n===4,n===4?'Ke-4 kartu dipakai':`Kartu belum semua (${n}/4)`);
+  if(r&&r.err==='div')h+=stat(0,'Pembagian harus bulat',1);else if(r&&r.err)h+=stat(0,'Urutan belum valid',1);
+  else if(r)h+=stat(1,'Pembagian bulat')+stat(r.v===24,'Hasil = '+r.v,r.v!==24);else h+=stat(0,'Belum lengkap',1);
+  checks.innerHTML=h;send.disabled=!(r&&!r.err&&r.v===24&&n===4)}
+function render(){renderStrip();renderTray();validate()}
+const cele=document.getElementById('cele');const COLORS=['#d99a3a','#a8352b','#f0e2c0','#f2b95c','#7a4a20'];
+function celebrate(){cele.classList.add('show');
+  for(let i=0;i<44;i++){const c=document.createElement('div');c.className='confetti';c.style.background=COLORS[i%COLORS.length];
+    c.style.left=(50+(Math.random()*60-30))+'%';const dx=(Math.random()*2-1)*260,dy=-Math.random()*360-60,rot=Math.random()*720;
+    c.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:`translate(${dx}px,${dy}px) rotate(${rot}deg)`,opacity:0}],{duration:1100+Math.random()*700,easing:'cubic-bezier(.2,.7,.3,1)'});
+    cele.appendChild(c);setTimeout(()=>c.remove(),1900)}
+  setTimeout(()=>cele.classList.remove('show'),1500)}
+send.addEventListener('click',()=>{if(send.disabled)return;celebrate()});
+renderOps();render();
+const rb=document.getElementById('raiseBtn'),rn=document.getElementById('raisedNote');
+rb.addEventListener('click',()=>{rb.classList.remove('pulse');rb.textContent='✓ Raised';rn.classList.add('on')});
+let cd=5;const cdNum=document.getElementById('cdNum'),cdFg=document.getElementById('cdFg');
+setInterval(()=>{cd--;if(cd<0)cd=5;cdNum.textContent=cd===0?'GO':cd;cdFg.style.strokeDashoffset=157*(1-cd/5)},1000);
+</script>
+</body>
+</html>
