@@ -17,7 +17,8 @@ export interface Room {
   players: RoomPlayer[]; // 2-10
   game: Game24 | null;
   gameRecordId: string | null; // UUID record Game di DB
-  status: 'lobby' | 'playing' | 'finished';
+  status: 'lobby' | 'countdown' | 'playing' | 'finished';
+  countdownEndsAt: number | null; // timestamp akhir countdown 5 dtk
   createdAt: number;
 }
 
@@ -38,7 +39,7 @@ export class RoomManager {
   createRoom(host: RoomPlayer): Room {
     let code = genCode();
     while (this.rooms.has(code)) code = genCode();
-    const room: Room = { code, hostId: host.userId, players: [host], game: null, gameRecordId: null, status: 'lobby', createdAt: Date.now() };
+    const room: Room = { code, hostId: host.userId, players: [host], game: null, gameRecordId: null, status: 'lobby', countdownEndsAt: null, createdAt: Date.now() };
     this.rooms.set(code, room);
     return room;
   }
@@ -77,11 +78,20 @@ export class RoomManager {
     return room;
   }
 
-  // Mulai game — hanya host, minimal MIN_PLAYERS pemain. Buat record Game di DB.
+  // Mulai countdown 5 detik sebelum game (host only, sudah divalidasi di handler).
+  beginCountdown(code: string): Room | undefined {
+    const room = this.rooms.get(code.toUpperCase());
+    if (!room) return undefined;
+    room.status = 'countdown';
+    room.countdownEndsAt = Date.now() + 5000;
+    return room;
+  }
+
+  // Mulai game — dipanggil setelah countdown selesai. Buat record Game di DB.
   async startGame(code: string, onEvent: (room: Room, event: EngineEvent) => void): Promise<{ room: Room } | { error: string }> {
     const room = this.rooms.get(code.toUpperCase());
     if (!room) return { error: 'room tidak ditemukan' };
-    if (room.status !== 'lobby') return { error: 'game sudah berjalan' };
+    if (room.status === 'playing' || room.status === 'finished') return { error: 'game sudah berjalan' };
     if (room.players.length < MIN_PLAYERS) return { error: `minimal ${MIN_PLAYERS} pemain` };
 
     // persistensi: bikin record Game + GamePlayer

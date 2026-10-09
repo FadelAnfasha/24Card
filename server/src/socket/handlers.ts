@@ -18,6 +18,7 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     code: room.code,
     hostId: room.hostId,
     status: room.status,
+    countdownEndsAt: room.countdownEndsAt,
     players: room.players.map((p) => ({ userId: p.userId, username: p.username })),
     game: room.game ? room.game.snapshot() : null,
   });
@@ -93,10 +94,23 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     const room = roomManager.roomOfUser(userId);
     if (!room) return cb?.({ error: 'belum di room' });
     if (room.hostId !== userId) return cb?.({ error: 'hanya host yang bisa start' });
-    const result = await roomManager.startGame(room.code, handleEngineEvent);
-    if ('error' in result) return cb?.({ error: result.error });
+    if (room.status !== 'lobby') return cb?.({ error: 'sudah dimulai' });
+    if (room.players.length < 2) return cb?.({ error: 'minimal 2 pemain' });
+
+    // mulai countdown 5 dtk, broadcast, baru start game
+    roomManager.beginCountdown(room.code);
+    broadcastRoom(room);
     cb?.({ ok: true });
-    broadcastRoom(result.room);
+
+    setTimeout(async () => {
+      if (room.status !== 'countdown') return; // room batal/keluar
+      const result = await roomManager.startGame(room.code, handleEngineEvent);
+      if ('error' in result) {
+        io.to(room.code).emit('game:error', { message: result.error });
+        return;
+      }
+      broadcastRoom(result.room);
+    }, 5000);
   });
 
   socket.on('round:raise', (cb?: (res: object) => void) => {

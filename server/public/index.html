@@ -275,21 +275,46 @@ function startGame(){socket.emit('game:start',(r)=>{if(r.error)toast(r.error);})
 function renderCurrent(){
   if(!roomState)return;
   if(roomState.status==='lobby'){renderLobby();}
+  else if(roomState.status==='countdown'){renderCountdown();}
   else if(roomState.status==='playing'){renderGame();}
   else if(roomState.status==='finished'){/* handleGameOver sudah panggil */}
 }
 function renderLobby(){
+  show('scr-lobby');
   document.getElementById('lobby-code').textContent=roomState.code;
   document.getElementById('lobby-count').textContent=roomState.players.length;
   document.getElementById('lobby-players').innerHTML=roomState.players.map(p=>`
     <div class="prow ${p.userId===me.id?'me':''}">
-      <span class="av">${p.username[0].toUpperCase()}</span>
-      <span class="nm">${p.username}${p.userId===me.id?' (kamu)':''}</span>
-      ${p.userId===roomState.hostId?'<span class="badge host">HOST</span>':''}
+      <span class="av">${(p.username||'?')[0].toUpperCase()}</span>
+      <span class="nm">${p.username||'?'}${p.userId===me.id?' (kamu)':''}</span>
+      ${p.userId===roomState.hostId?'<span class="badge host">HOST</span>':'<span class="badge up">SIAP</span>'}
     </div>`).join('');
   document.getElementById('lobby-start').classList.toggle('hidden',roomState.hostId!==me.id);
-  if(document.getElementById('scr-lobby').classList.contains('active')||true){/* lobby tampil kalo status lobby */}
 }
+function renderCountdown(){
+  show('scr-game');
+  clearInterval(cdTicker);
+  const tick=()=>{
+    const left=Math.max(0,Math.ceil(((roomState?.countdownEndsAt||0)-Date.now())/1000));
+    const el=document.getElementById('cd-num');
+    if(el)el.textContent=left;
+    if(left<=0||roomState?.status!=='countdown')clearInterval(cdTicker);
+  };
+  document.getElementById('g-round').textContent='Game segera dimulai';
+  document.getElementById('g-deck').textContent='';
+  document.getElementById('g-banner').innerHTML=`<div class="center" style="padding:24px 0"><div id="cd-num" style="font-family:var(--font-d);font-size:64px;font-weight:700;color:var(--gold)">5</div><div class="mini">menyiapkan game…</div></div>`;
+  document.getElementById('g-timer').textContent='';
+  document.getElementById('g-cards').innerHTML='';
+  document.getElementById('g-prove').classList.add('hidden');
+  document.getElementById('g-players').innerHTML=roomState.players.map(p=>`
+    <div class="prow ${p.userId===me.id?'me':''}">
+      <span class="av">${(p.username||'?')[0].toUpperCase()}</span>
+      <span class="nm">${p.username||'?'}</span><span class="badge up">SIAP</span>
+    </div>`).join('');
+  document.getElementById('g-actions').innerHTML='';
+  tick();cdTicker=setInterval(tick,300);
+}
+let cdTicker=null;
 function handleGameOver(e){
   document.getElementById('over-title').textContent=e.winnerId?(e.winnerId===me.id?'KAMU MENANG':'PEMENANG: '+nameOf(e.winnerId)):'TIDAK ADA PEMENANG (tie)';
   document.getElementById('over-title').style.color=e.winnerId===me.id?'var(--gold)':'var(--bone)';
@@ -307,6 +332,7 @@ function nameOf(uid){const p=roomState?.players?.find(x=>x.userId===uid);return 
 
 // ---------- game ----------
 function renderGame(){
+  show('scr-game');
   const g=roomState.game;if(!g)return;
   document.getElementById('g-round').textContent='Ronde '+g.roundNo+'/10';
   document.getElementById('g-deck').textContent='Sisa pool: '+g.deckRemaining;
