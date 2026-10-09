@@ -1,0 +1,9 @@
+tmp_check/
+node_modules/
+__pycache__/
+*.log
+.DS_Store
+client/.dart_tool/
+client/build/
+server/dist/
+.env
