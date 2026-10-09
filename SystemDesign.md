@@ -40,22 +40,31 @@ Tiga tanggung jawab terpisah:
 ## 3. Game State Machine (per room)
 
 ```
-LOBBY ──host start──► ROUND_DRAW ──► AWAIT_RAISE ──(1 player belum raise)──► CHALLENGE
+LOBBY ──host start──► ROUND_DRAW ──► AWAIT_RAISE ──(sisa 1 belum raise)──► CHALLENGE (deadline 45 dtk)
   ▲                        │                │                                    │
-  │                        │                └──(semua raise*)──────────────┐     │
-  │                        ▼                                               │     ▼
-  │                 ┌─────────────┐   target gagal bukti  ┌──────────────────────┐
-  │                 │ pool habis? │──YA──► GAME_OVER      │ AWAIT_PROOF          │
-  │                 └──────┬──────┘                       │ (target input rumus) │
-  │                        │TIDAK                         └──────────┬───────────┘
-  │                        ▼                                          │
-  └──────────────── ROUND_RESOLVE ◄───────────────────────────────────┘
-                    (tentukan pemegang kartu penalty → back to ROUND_DRAW)
-
-* kasus "semua raise" — lihat PRD §7 (risiko terbuka, belum ada mekanisme)
+  │                        │                │  ──(semua raise)──────────────┐   │
+  │                        │                │                               ▼   ▼
+  │                        │                │                    AWAIT_PROOF (deadline 45 dtk)
+  │                        │                │  ──(semua surrender /           │
+  │                        │                │     sisa aktif tinggal 1)       │
+  │                        │                ▼                                │
+  │                 ┌─────────────┐  ROUND_DISCARD (4 kartu hangus)           │
+  │                 │ pool habis? │──YA──► GAME_OVER                          │
+  │                 └──────┬──────┘                                           │
+  │                        │TIDAK                                             ▼
+  │                        ▼                                       ROUND_RESOLVE
+  │              ROUND_RESOLVE ◄────────────────────────────────────(valid → challenger ambil kartu;
+  │                        ▲                                         bluff/timeout → target ambil;
+  │                        │                                         semua-raise & bukti valid → hangus)
+  └────────────────────────┘
 ```
 
-State yang disimpan per room: `phase`, `roundNo`, `cards[4]`, `raised: Set<playerId>`, `challengerId`, `targetId`, `penaltyHolderId`, `deckRemaining`.
+Deadline aksi (server-side, di-set saat fase masuk):
+- **CHALLENGE:** 45 detik — habis = pemain terakhir yang belum raise **ambil 4 kartu** (anti-stall)
+- **AWAIT_PROOF:** 45 detik — habis = target dianggap **bluff, ambil 4 kartu**
+- **Surrender:** hanya di fase AWAIT_RAISE, aktif setelah 30 detik, **dilarang** saat CHALLENGE/AWAIT_PROOF aktif
+
+State yang disimpan per room: `phase`, `roundNo`, `cards[4]`, `raised: Set<playerId>` (+ `lastRaiserId`), `surrendered: Set<playerId>`, `challengerId`, `targetId`, `penaltyHolderId`, `deckRemaining`, `phaseDeadlineAt`.
 
 ## 4. Katalog Event Socket.IO
 
@@ -69,6 +78,7 @@ State yang disimpan per room: `phase`, `roundNo`, `cards[4]`, `raised: Set<playe
 | `game:start` | `{}` | Host memulai game |
 | `round:raise` | `{}` | Raise hand |
 | `round:challenge` | `{ targetId }` | Tantang pemain yang sudah raise |
+| `round:surrender` | `{}` | Fold ronde (hanya fase raise terbuka, setelah 30 detik) |
 | `round:prove` | `{ expression }` | Buktikan rumus — string hasil rakitan drag (kartu + operator + kurung) |
 
 ### Server → Klien

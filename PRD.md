@@ -41,8 +41,11 @@ Contoh: kartu 6♥, 4♠, 3♦, 2♣
 1. Server menarik 4 kartu dari pool (hanya kombinasi yang **terbukti solvable**)
 2. Keempat kartu ditampilkan ke semua pemain
 3. Pemain yang yakin bisa menyusun 24 menekan **RAISE HAND** (status publik — semua pemain melihat siapa yang sudah raise)
-4. Ketika tersisa **1 pemain yang belum raise**, pemain tersebut berhak **menantang** (challenge) pemain manapun yang sudah raise
-5. Pemain yang ditantang wajib membuktikan rumusnya dengan **menyusun ekspresi secara drag & drop** — menggeser kartu ke strip ekspresi dan memilih operator (tanpa keyboard, menghindari typo) → hasil susunan divalidasi server
+4. Ketika tersisa **1 pemain yang belum raise**, pemain tersebut berhak **menantang** (challenge) pemain manapun yang sudah raise — **wajib dalam 45 detik**; jika diam sampai waktu habis, **dia yang mengambil 4 kartu penalty** (anti-stall)
+5. Pemain yang ditantang wajib membuktikan rumusnya dengan **menyusun ekspresi secara drag & drop** — menggeser kartu ke strip ekspresi dan memilih operator (tanpa keyboard, menghindari typo) → hasil susunan divalidasi server. **Jendela pembuktian: 45 detik** — lewat itu dianggap bluff
+6. **Jika semua pemain raise** (tidak ada yang bisa ditantang): **pemain terakhir yang raise wajib membuktikan dalam 45 detik** (raise terakhir dianggap paling mencurigakan)
+   - Gagal bukti → **dia yang mengambil 4 kartu**
+   - Berhasil bukti → **4 kartu hangus** (semua mengaku bisa — tidak ada yang bisa dituduh bluff)
 
 **Hasil pembuktian:**
 | Kondisi | Konsekuensi |
@@ -50,10 +53,21 @@ Contoh: kartu 6♥, 4♠, 3♦, 2♣
 | Rumus **valid** (hasil 24, pakai 4 kartu benar) | **Penantang** mengambil 4 kartu penalty |
 | Rumus **tidak valid** / gagal membuktikan (bluff) | **Pemain bohong** (yang ditantang) mengambil 4 kartu penalty |
 
-6. 4 kartu penalty masuk **permanen ke tangan** pemain yang kalah ronde (tidak kembali ke pool)
-7. Ronde berikutnya dimulai dengan 4 kartu baru dari pool
+### 2.3a Mekanisme Surrender (final)
 
-**Tidak ada timer** — ronde berjalan sampai ada pembuktian.
+- Tombol **SURRENDER** tersedia di fase raise terbuka, muncul setelah **30 detik** kartu dibagikan
+- **Surrender = fold ronde** — pemain keluar dari ronde itu: tidak bisa ditantang, tidak menerima kartu
+- **Ronde lanjut** normal antar pemain yang tersisa
+- **4 kartu hangus** (keluar pool, tidak ke tangan siapapun) jika:
+  - sisa pemain aktif tinggal **1 orang** (tidak ada lawan untuk challenge), atau
+  - **semua pemain surrender** serentak
+- **Surrender DILARANG setelah challenge aktif** — setelah ditantang, jalan keluar hanya: buktikan rumus dalam 45 detik atau ambil kartu penalty. Surrender bukan tombol kabur dari tantangan
+
+7. 4 kartu penalty masuk **permanen ke tangan** pemain yang kalah ronde (tidak kembali ke pool)
+8. Jika kartu hangus, 4 kartu langsung keluar dari pool (tidak ke tangan siapapun)
+9. Ronde berikutnya dimulai dengan 4 kartu baru dari pool — game berakhir saat pool habis (10 ronde)
+
+**Tidak ada timer ronde** — tiap aksi punya deadline sendiri: challenge/bukti **45 detik**, surrender aktif setelah **30 detik**.
 
 ### 2.4 Akhir Game & Pemenang
 
@@ -71,10 +85,10 @@ Contoh: kartu 6♥, 4♠, 3♦, 2♣
 
 ### 3.2 Room Multiplayer
 - Kapasitas **2–10 pemain** per room
-- Mekanisme masuk:
+- Mekanisme masuk (v1 minimal):
   - **Room code 6 karakter**
   - **Share link** invite
-  - **Friend list** + invite langsung ke teman
+  - *(Friend list penuh — request/search/online — di v2)*
 - Host room memulai game
 
 ### 3.3 Gameplay Real-Time
@@ -116,23 +130,24 @@ Contoh: kartu 6♥, 4♠, 3♦, 2♣
 
 | # | Kasus | Penanganan |
 |---|---|---|
-| 1 | Tidak ada pemain yang raise (semua stuck) | Dianggap **tidak mungkin** oleh product owner (kombinasi selalu solvable + tanpa timer, pemain bisa mikir selama apapun). Risiko teoretis tetap dicatat — lihat §7 |
-| 2 | Tie di akhir game | Semua pemain tie dianggap kalah |
-| 3 | Pemain disconnect di tengah ronde | Grace period 60 detik → auto-fold |
-| 4 | As bernilai 1 atau 11 | Pemain yang membuktikan bebas memilih interpretasi; validasi server menerima keduanya |
-| 5 | Pemain mengetik rumus tapi hasil ≠ 24 | Rumus tidak valid → dianggap bluff |
-| 6 | Pemain mengetik rumus yang memakai kartu lebih/kurang dari 4 | Rumus tidak valid → dianggap bluff |
+| 1 | Tidak ada pemain yang raise (semua stuck) | Semua bisa **surrender** → 4 kartu hangus, ronde berikutnya jalan (§2.3a) |
+| 2 | Semua pemain raise | Pemain **terakhir yang raise** wajib bukti 45 detik — gagal = ambil kartu, berhasil = hangus (§2.3 poin 6) |
+| 3 | Pemain terakhir belum raise tapi diam | 45 detik → **dia yang ambil kartu** (anti-stall) |
+| 4 | Tie di akhir game | Semua pemain tie dianggap kalah |
+| 5 | Pemain disconnect di tengah ronde | Grace period 60 detik → auto-fold |
+| 6 | Reconnect **setelah** grace period habis | Pemain keluar game, status jadi penonton sampai game berikutnya (kartu yang sudah terlanjur jatuh ke dia tetap dihitung) |
+| 7 | As bernilai 1 atau 11 | Pemain yang membuktikan bebas memilih interpretasi; validasi server menerima keduanya |
+| 8 | Rumus tidak valid / hasil ≠ 24 / kartu kurang-lebih | Dianggap bluff → yang ditantang ambil kartu |
+| 9 | Join di tengah game berlangsung | Tidak diizinkan — join hanya di lobby sebelum game dimulai |
 
 ## 7. Open Questions / Risiko Terbuka
 
-1. **Deadlock teoretis:** jika semua pemain terhubung tapi tidak ada yang bisa menyelesaikan (meski solvable), ronde tidak akan pernah berakhir karena tidak ada timer. Belum ada mekanisme escape — lihat poin 3 (kandidat solusi: tombol surrender).
-2. **Definisi "bisa solve tapi raise"** — tidak ada biaya/batas raise; pemain bisa raise lalu menunggu. Belum ada aturan anti-stalling.
-3. **Mekanisme Surrender (kandidat solusi deadlock — belum final):**
-   - Setelah kartu muncul, jika pemain tidak yakin bisa solve, tersedia tombol **SURRENDER** yang muncul setelah **N detik** (rekomendasi: **30 detik**, agar jendela bluffing tetap ada dan pemain kasual sempat mikir — 15 detik dinilai terlalu cepat).
-   - **Pertanyaan terbuka sebelum finalisasi:**
-     a. Jika hanya **sebagian** pemain yang surrender (sisanya masih raise/mikir), kartu penalty ronde itu jatuh ke siapa?
-     b. Jika **semua** pemain surrender serentak (tidak ada yang raise), 4 kartu ke siapa — dibagi rata, masuk pot ronde berikutnya, atau pemain tercepat yang ambil?
-   - Aturan final mekanisme surrender (kondisi a & b) menunggu keputusan product owner.
+Pertanyaan kritis ronde sudah **FINAL**: surrender (§2.3a), semua-raise (§2.3 poin 6), anti-stall 45 detik, jendela bukti 45 detik. Sisa yang tertunda:
+
+1. **Reconnect setelah grace period habis** — perilaku default v1: penonton sampai game berikutnya (bisa diubah)
+2. **Ranked / rating ELO** — out of scope v1, dipertimbangkan v2
+3. **Friend list penuh** (request/search/online status) — v2
+4. **Notifikasi push** — v2
 
 
 ## 8. Success Metrics
