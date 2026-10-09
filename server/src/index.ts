@@ -4,6 +4,8 @@
 import 'dotenv/config';
 import express from 'express';
 import { createServer } from 'node:http';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { api } from './api/routes.js';
@@ -11,11 +13,15 @@ import { registerSocketHandlers } from './socket/handlers.js';
 import { verifyToken } from './auth/service.js';
 
 const PORT = Number(process.env.PORT) || 3000;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/api', api);
+
+// static web client (buat testing di device sebelum Flutter)
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // health check
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'twentycard-server' }));

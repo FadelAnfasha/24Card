@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>24Card</title>
+<style>
+:root{
+  --bg:#0d1210;--felt:#14201b;--surface:#1a2823;--surface2:#20302a;--line:#2c4038;
+  --bone:#f4efe2;--ink:#101613;--muted:#8aa396;--gold:#d9a441;--red:#c8443a;--green:#41a86f;--sred:#c8392f;
+  --font-d:'Space Grotesk',system-ui,sans-serif;--font-b:'DM Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--bone);font-family:var(--font-b);min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh;padding:18px 16px 28px;max-width:480px;margin:0 auto;flex-direction:column}
+.screen.active{display:flex}
+h1{font-family:var(--font-d);font-size:26px;display:flex;align-items:center;gap:10px}
+h1 .mark{width:38px;height:38px;background:var(--gold);border-radius:10px;display:grid;place-items:center;color:var(--ink);font-weight:700;font-size:19px}
+h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
+.mini{font-size:12px;color:var(--muted)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:12px;border:none;cursor:pointer;font-family:var(--font-d);font-weight:600;font-size:15px;width:100%;color:var(--ink);background:var(--gold);transition:transform .08s}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.4;pointer-events:none}
+.btn-ghost{background:transparent;color:var(--bone);border:1.5px solid var(--line)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-sm{height:40px;font-size:13px;border-radius:10px}
+.stack{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.field{background:var(--surface);border:1.5px solid var(--line);border-radius:11px;padding:13px;color:var(--bone);font-size:16px;width:100%;font-family:var(--font-b)}
+.pcard{width:60px;height:86px;background:var(--bone);border-radius:9px;color:var(--ink);position:relative;padding:7px 8px;font-family:var(--font-d);font-weight:700;box-shadow:0 4px 10px rgba(0,0,0,.35);flex-shrink:0}
+.pcard.red{color:var(--sred)}
+.pcard .v{font-size:22px;line-height:1}
+.pcard .s{font-size:16px;position:absolute;bottom:6px;right:8px}
+.cards{display:flex;justify-content:center;gap:9px;margin:14px 0}
+.prow{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);padding:10px 12px;border-radius:11px;cursor:pointer}
+.prow.me{border-color:var(--gold);background:#221f13}
+.prow .av{width:32px;height:32px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-family:var(--font-d);font-weight:600;font-size:13px;flex-shrink:0}
+.prow .nm{font-size:14px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .cnt{font-family:var(--font-d);font-size:12px;color:var(--muted)}
+.badge{font-family:var(--font-d);font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;letter-spacing:.3px}
+.badge.up{background:rgba(65,168,111,.16);color:var(--green);border:1px solid rgba(65,168,111,.4)}
+.badge.think{background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
+.badge.host{background:rgba(217,164,65,.15);color:var(--gold);border:1px solid rgba(217,164,65,.4)}
+.badge.bad{background:rgba(200,68,58,.15);color:#efb8b3;border:1px solid rgba(200,68,58,.4)}
+.gtop{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:8px;font-family:var(--font-d)}
+.gtop .rnd{font-size:14px;font-weight:600}
+.gtop .deck{font-size:12px;color:var(--muted)}
+.banner{background:rgba(217,164,65,.1);border:1px solid rgba(217,164,65,.45);color:#e8cf9a;border-radius:11px;padding:12px 14px;font-size:13.5px;margin-bottom:12px}
+.banner.bad{background:rgba(200,68,58,.13);border-color:rgba(200,68,58,.45);color:#efb8b3}
+.banner b{color:#fff}
+/* drag builder */
+.strip{min-height:62px;background:var(--bg);border:1.5px dashed var(--line);border-radius:12px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:10px;margin-bottom:10px}
+.strip .ph{color:#43554c;font-size:13px}
+.strip.hot{border-color:var(--gold);border-style:solid}
+.tokc{background:var(--bone);color:var(--ink);border-radius:8px;font-family:var(--font-d);font-weight:700;font-size:16px;padding:8px 9px;cursor:pointer;line-height:1;box-shadow:0 3px 7px rgba(0,0,0,.3)}
+.tokc i{font-style:normal;font-size:11px;margin-left:1px}
+.tokc.red{color:var(--sred)}
+.toko{color:var(--gold);font-family:var(--font-d);font-weight:700;font-size:18px;cursor:pointer;padding:5px 3px;line-height:1}
+.tray{display:flex;justify-content:center;gap:10px;margin-bottom:10px;min-height:88px;align-items:center;flex-wrap:wrap}
+.tray .pcard{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.ops{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.opb{background:var(--surface);border:1px solid var(--line);color:var(--bone);font-family:var(--font-d);font-weight:600;font-size:17px;width:44px;height:40px;border-radius:10px;cursor:pointer}
+.opb.wide{width:auto;padding:0 13px;font-size:12px;color:var(--muted)}
+.ghostdrag{position:fixed;pointer-events:none;opacity:.92;z-index:99;transform:scale(1.06) rotate(-4deg)}
+.stat{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0}
+.stat .tick{width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0}
+.stat.ok{color:#bfe3cd}.stat.no{color:#efb8b3}
+.stat.ok .tick{background:rgba(65,168,111,.2);color:var(--green);border:1px solid rgba(65,168,111,.5)}
+.stat.no .tick{background:rgba(200,68,58,.18);color:var(--red);border:1px solid rgba(200,68,58,.5)}
+.codeboxes{display:flex;gap:8px;justify-content:center;margin:16px 0}
+.cbox{width:44px;height:54px;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;display:grid;place-items:center;font-family:var(--font-d);font-weight:700;font-size:22px}
+.lbrow{display:flex;align-items:center;gap:11px;padding:11px;background:var(--surface);border:1px solid var(--line);border-radius:11px;margin-bottom:8px}
+.lbrow .rk{font-family:var(--font-d);font-weight:700;font-size:15px;width:26px;color:var(--muted)}
+.lbrow .rk.top{color:var(--gold)}
+.lbrow .wr{margin-left:auto;font-family:var(--font-d);font-weight:600;color:var(--gold)}
+.nav{display:flex;border-top:1px solid var(--line);background:var(--surface);margin:16px -16px -28px;position:sticky;bottom:0}
+.nav div{flex:1;text-align:center;padding:12px 0;font-family:var(--font-d);font-size:12px;color:var(--muted);cursor:pointer}
+.nav div.on{color:var(--gold)}
+.spacer{flex:1}
+.center{text-align:center}
+.mt{margin-top:14px}
+.hidden{display:none!important}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);color:var(--bone);padding:11px 18px;border-radius:10px;font-size:13.5px;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
+#toast.show{opacity:1}
+.timer{font-family:var(--font-d);font-size:12px;color:var(--gold);text-align:center;margin:6px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="screen active" id="scr-login">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    <h1><span class="mark">24</span> 24Card</h1>
+    <p class="mini mt">Tebak · Bluff · Bertahan</p>
+    <div class="stack">
+      <button class="btn" onclick="guestLogin()">Main sebagai Tamu</button>
+      <button class="btn btn-ghost" onclick="show('scr-register')">Daftar Akun</button>
+    </div>
+    <p class="mini center mt" id="login-info"></p>
+  </div>
+</div>
+
+<!-- REGISTER -->
+<div class="screen" id="scr-register">
+  <h2>Daftar Akun</h2>
+  <div class="stack">
+    <input class="field" id="reg-user" placeholder="Username (3-24 karakter)" maxlength="24">
+    <input class="field" id="reg-pass" type="password" placeholder="Password (min 6)">
+    <button class="btn" onclick="doRegister()">Daftar</button>
+    <button class="btn btn-ghost" onclick="show('scr-login')">Kembali</button>
+    <p class="mini center" id="reg-info"></p>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="scr-home">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h1><span class="mark">24</span> 24Card</h1>
+    <span class="mini" id="home-user"></span>
+  </div>
+  <div class="stack mt">
+    <button class="btn" onclick="createRoom()">Buat Room</button>
+    <button class="btn btn-ghost" onclick="show('scr-join')">Gabung Room</button>
+    <button class="btn btn-ghost" onclick="openLeaderboard()">Peringkat</button>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn btn-ghost btn-sm" onclick="logout()">Keluar</button>
+</div>
+
+<!-- JOIN -->
+<div class="screen" id="scr-join">
+  <h2>Gabung Room</h2>
+  <p class="mini center">Masukkan kode 6 karakter</p>
+  <div class="codeboxes" id="join-boxes"></div>
+  <input class="field" id="join-code" maxlength="6" placeholder="Kode room" style="text-transform:uppercase;text-align:center;font-family:var(--font-d);letter-spacing:4px" oninput="renderJoinBoxes()">
+  <div class="stack">
+    <button class="btn" onclick="joinRoom()">Gabung</button>
+    <button class="btn btn-ghost" onclick="show('scr-home')">Kembali</button>
+    <p class="mini center" id="join-info"></p>
+  </div>
+</div>
+
+<!-- LOBBY -->
+<div class="screen" id="scr-lobby">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <h2 style="margin:0">Room <span style="color:var(--gold)" id="lobby-code"></span></h2>
+    <button class="btn btn-ghost btn-sm" style="width:auto;padding:0 12px" onclick="copyCode()">Salin</button>
+  </div>
+  <p class="mini mt">Bagikan kode ini ke temanmu</p>
+  <h2 class="mt">Pemain · <span id="lobby-count">0</span>/10</h2>
+  <div class="stack" id="lobby-players" style="gap:8px"></div>
+  <div class="spacer"></div>
+  <button class="btn hidden" id="lobby-start" onclick="startGame()">Mulai Game</button>
+  <button class="btn btn-ghost btn-sm mt" onclick="leaveRoom()">Keluar Room</button>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="scr-game">
+  <div class="gtop">
+    <span class="rnd" id="g-round">Ronde -</span>
+    <span class="deck" id="g-deck"></span>
+  </div>
+  <div id="g-banner"></div>
+  <div class="timer" id="g-timer"></div>
+  <div class="cards" id="g-cards"></div>
+
+  <!-- prove builder (target only) -->
+  <div id="g-prove" class="hidden">
+    <h2 style="font-size:15px">Buktikan rumus</h2>
+    <p class="mini">Geser/tap kartu ke strip · sisipkan operator · tap token = hapus</p>
+    <div class="strip" id="strip"><span class="ph">geser / tap kartu ke sini…</span></div>
+    <div class="tray" id="tray"></div>
+    <div class="ops" id="ops"></div>
+    <div id="checks"></div>
+  </div>
+
+  <h2 style="font-size:15px;margin-top:12px">Pemain</h2>
+  <div class="stack" id="g-players" style="gap:7px"></div>
+
+  <div class="spacer"></div>
+  <div class="stack" id="g-actions"></div>
+</div>
+
+<!-- GAME OVER -->
+<div class="screen" id="scr-over">
+  <div class="center" style="margin-top:24px">
+    <p class="mini" style="letter-spacing:2px">POOL HABIS · SELESAI</p>
+    <h1 id="over-title" style="justify-content:center;margin-top:8px"></h1>
+    <p class="mini mt" id="over-sub"></p>
+  </div>
+  <div class="stack mt" id="over-standings" style="gap:8px"></div>
+  <div class="spacer"></div>
+  <button class="btn" onclick="show('scr-home')">Ke Beranda</button>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="screen" id="scr-lb">
+  <h2>Peringkat</h2>
+  <p class="mini">Diurutkan dari win rate</p>
+  <div class="mt" id="lb-list"></div>
+  <div class="spacer"></div>
+  <button class="btn btn-ghost" onclick="show('scr-home')">Kembali</button>
+</div>
+
+<div id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const API = ''; // same origin
+let token = localStorage.getItem('tc_token') || '';
+let me = JSON.parse(localStorage.getItem('tc_me') || 'null');
+let socket = null;
+let roomState = null;       // snapshot terbaru dari server
+let gameEvents = [];        // recorder event game
+let myRoomCode = null;
+let deadlineTimer = null;
+
+// ---------- util ----------
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+const SUIT_CH={S:'♠',H:'♥',D:'♦',C:'♣'};
+const RED={H:1,D:1};
+function cardHTML(c){return `<div class="pcard ${RED[c.suit]?'red':''}"><span class="v">${c.rank}</span><span class="s">${SUIT_CH[c.suit]}</span></div>`;}
+
+async function api(path,opts){const r=await fetch(API+path,{headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},...opts});return r.json();}
+
+// ---------- auth ----------
+async function guestLogin(){
+  const r=await fetch(API+'/api/auth/guest',{method:'POST'}).then(x=>x.json());
+  token=r.token;me=r.user;saveAuth();connectSocket();show('scr-home');renderHome();
+}
+async function doRegister(){
+  const u=document.getElementById('reg-user').value.trim(),p=document.getElementById('reg-pass').value;
+  const r=await api('/api/auth/register',{method:'POST',body:JSON.stringify({username:u,password:p})});
+  if(r.error){document.getElementById('reg-info').textContent=r.error;return;}
+  token=r.token;me=r.user;saveAuth();connectSocket();show('scr-home');renderHome();
+}
+function saveAuth(){localStorage.setItem('tc_token',token);localStorage.setItem('tc_me',JSON.stringify(me));}
+function logout(){token='';me=null;localStorage.clear();if(socket)socket.disconnect();show('scr-login');}
+function renderHome(){document.getElementById('home-user').textContent=me?`@${me.username}`:'';}
+
+// ---------- socket ----------
+function connectSocket(){
+  if(socket)socket.disconnect();
+  socket=io({auth:{token}});
+  socket.on('room:state',(st)=>{roomState=st;renderCurrent();});
+  socket.on('game:event',(e)=>{gameEvents.push(e);if(e.type==='game_over')handleGameOver(e);renderCurrent();});
+  socket.on('connect_error',(e)=>toast('Koneksi gagal: '+e.message));
+}
+
+// ---------- room ----------
+async function createRoom(){
+  socket.emit('room:create',(r)=>{
+    if(r.error){toast(r.error);return;}
+    myRoomCode=r.code;show('scr-lobby');
+  });
+}
+function renderJoinBoxes(){
+  const v=document.getElementById('join-code').value.toUpperCase();
+  document.getElementById('join-boxes').innerHTML=[...Array(6)].map((_,i)=>`<div class="cbox ${v[i]?'':''}">${v[i]||''}</div>`).join('');
+}
+async function joinRoom(){
+  const code=document.getElementById('join-code').value.toUpperCase();
+  if(code.length!==6){document.getElementById('join-info').textContent='Kode 6 karakter';return;}
+  socket.emit('room:join',{code},(r)=>{
+    if(r.error){document.getElementById('join-info').textContent=r.error;return;}
+    myRoomCode=code;show('scr-lobby');
+  });
+}
+function copyCode(){if(roomState){navigator.clipboard?.writeText(roomState.code);toast('Kode disalin: '+roomState.code);}}
+function leaveRoom(){socket.emit('room:leave');myRoomCode=null;roomState=null;gameEvents=[];show('scr-home');}
+function startGame(){socket.emit('game:start',(r)=>{if(r.error)toast(r.error);});}
+
+// ---------- render routing ----------
+function renderCurrent(){
+  if(!roomState)return;
+  if(roomState.status==='lobby'){renderLobby();}
+  else if(roomState.status==='playing'){renderGame();}
+  else if(roomState.status==='finished'){/* handleGameOver sudah panggil */}
+}
+function renderLobby(){
+  document.getElementById('lobby-code').textContent=roomState.code;
+  document.getElementById('lobby-count').textContent=roomState.players.length;
+  document.getElementById('lobby-players').innerHTML=roomState.players.map(p=>`
+    <div class="prow ${p.userId===me.id?'me':''}">
+      <span class="av">${p.username[0].toUpperCase()}</span>
+      <span class="nm">${p.username}${p.userId===me.id?' (kamu)':''}</span>
+      ${p.userId===roomState.hostId?'<span class="badge host">HOST</span>':''}
+    </div>`).join('');
+  document.getElementById('lobby-start').classList.toggle('hidden',roomState.hostId!==me.id);
+  if(document.getElementById('scr-lobby').classList.contains('active')||true){/* lobby tampil kalo status lobby */}
+}
+function handleGameOver(e){
+  document.getElementById('over-title').textContent=e.winnerId?(e.winnerId===me.id?'KAMU MENANG':'PEMENANG: '+nameOf(e.winnerId)):'TIDAK ADA PEMENANG (tie)';
+  document.getElementById('over-title').style.color=e.winnerId===me.id?'var(--gold)':'var(--bone)';
+  const counts=roomState?.game?.cardCounts||{};
+  document.getElementById('over-standings')=(e.standings||[]).map(s=>`
+    <div class="prow ${s.playerId===me.id?'me':''}">
+      <span class="av">${s.placement}</span>
+      <span class="nm">${nameOf(s.playerId)}${s.playerId===me.id?' (kamu)':''}</span>
+      <span class="cnt">${s.cardCount} kartu</span>
+      ${s.isWinner?'<span class="badge host">MENANG</span>':'<span class="badge bad">kalah</span>'}
+    </div>`).join('');
+  show('scr-over');
+}
+function nameOf(uid){const p=roomState?.players?.find(x=>x.userId===uid);return p?p.username:uid.slice(0,10);}
+
+// ---------- game ----------
+function renderGame(){
+  const g=roomState.game;if(!g)return;
+  document.getElementById('g-round').textContent='Ronde '+g.roundNo+'/10';
+  document.getElementById('g-deck').textContent='Sisa pool: '+g.deckRemaining;
+  document.getElementById('g-cards').innerHTML=(g.cards||[]).map(cardHTML).join('');
+
+  // banner
+  let banner='';
+  if(g.phase==='CHALLENGE'&&g.challengerId===me.id)banner=`<div class="banner">Kamu yang belum raise — <b>pilih pemain yang mau ditantang</b></div>`;
+  else if(g.phase==='CHALLENGE')banner=`<div class="banner"><b>${nameOf(g.challengerId)}</b> menantang salah satu yang raise…</div>`;
+  else if(g.phase==='AWAIT_PROOF'&&g.targetId===me.id)banner=`<div class="banner bad"><b>Kamu ditantang!</b> Buktikan rumusmu.</div>`;
+  else if(g.phase==='AWAIT_PROOF')banner=`<div class="banner"><b>${nameOf(g.targetId)}</b> sedang membuktikan…</div>`;
+  document.getElementById('g-banner').innerHTML=banner;
+
+  // players
+  document.getElementById('g-players').innerHTML=roomState.players.map(p=>{
+    const raised=(g.raised||[]).includes(p.userId);
+    const surrendered=(g.surrendered||[]).includes(p.userId);
+    const cnt=g.cardCounts?.[p.userId]??0;
+    let badge='<span class="badge think">berpikir</span>';
+    if(surrendered)badge='<span class="badge bad">FOLD</span>';
+    else if(g.phase==='AWAIT_PROOF'&&g.targetId===p.userId)badge='<span class="badge bad">MENBUKTIKAN</span>';
+    else if(g.phase==='CHALLENGE'&&g.challengerId===p.userId)badge='<span class="badge host">MENANTANG</span>';
+    else if(raised)badge='<span class="badge up">RAISE ⬆</span>';
+    const clickable=g.phase==='CHALLENGE'&&g.challengerId===me.id&&raised;
+    return `<div class="prow ${p.userId===me.id?'me':''} ${clickable?'':''}" ${clickable?`onclick="challenge('${p.userId}')"`:''} style="${clickable?'border-color:var(--red);':''}">
+      <span class="av">${p.username[0].toUpperCase()}</span>
+      <span class="nm">${p.username}${p.userId===me.id?' (kamu)':''}</span>
+      <span class="cnt">${cnt} kartu</span>${badge}</div>`;
+  }).join('');
+
+  // prove builder visibility
+  const showProve=g.phase==='AWAIT_PROOF'&&g.targetId===me.id;
+  document.getElementById('g-prove').classList.toggle('hidden',!showProve);
+  if(showProve)renderBuilder();
+
+  // countdown
+  updateTimer(g);
+
+  // actions
+  let actions='';
+  const iRaised=(g.raised||[]).includes(me.id);
+  const iSurr=(g.surrendered||[]).includes(me.id);
+  if(g.phase==='AWAIT_RAISE'&&!iRaised&&!iSurr){
+    actions+=`<button class="btn" onclick="emit('round:raise')">RAISE HAND</button>`;
+  }
+  if(g.phase==='AWAIT_RAISE'&&!iSurr){
+    actions+=`<button class="btn btn-ghost btn-sm" onclick="emit('round:surrender')">SURRENDER (fold ronde)</button>`;
+  }
+  if(g.phase==='AWAIT_PROOF'&&g.targetId===me.id){
+    actions+=`<button class="btn" id="prove-btn" onclick="submitProof()">KIRIM BUKTI</button>`;
+  }
+  document.getElementById('g-actions').innerHTML=actions;
+}
+
+let deadlineInt=null;
+function updateTimer(g){
+  clearInterval(deadlineInt);
+  const el=document.getElementById('g-timer');
+  if(!g.phaseDeadlineAt){el.textContent='';return;}
+  const tick=()=>{
+    const left=Math.max(0,Math.ceil((g.phaseDeadlineAt-Date.now())/1000));
+    el.textContent=left>0?left+' dtk':'…';
+    if(left<=0)clearInterval(deadlineInt);
+  };
+  tick();deadlineInt=setInterval(tick,300);
+}
+
+function emit(ev,payload){const cb=(r)=>{if(r&&r.error)toast(r.error);};if(payload)socket.emit(ev,payload,cb);else socket.emit(ev,cb);}
+function challenge(targetId){socket.emit('round:challenge',{targetId},(r)=>{if(r.error)toast(r.error);});}
+
+// ---------- prove builder (drag) ----------
+let bState=[]; // {k:'c',i:cardIdx} | {k:'o',ch}
+let bCards=[];
+function renderBuilder(){
+  const g=roomState.game;bCards=g.cards||[];
+  if(bState._round!==g.roundNo){bState=[];bState._round=g.roundNo;}
+  renderStrip();renderTray();renderOps();validateBuilder();
+}
+function placedCardIdx(){return bState.filter(t=>t.k==='c').map(t=>t.i);}
+function renderTray(){
+  const placed=placedCardIdx();
+  const left=bCards.map((c,i)=>({c,i})).filter(x=>!placed.includes(x.i));
+  const tray=document.getElementById('tray');
+  if(!left.length){tray.innerHTML='<span class="mini">semua kartu di strip — tap token utk kembalikan</span>';return;}
+  tray.innerHTML=left.map(x=>`<div class="pcard ${RED[x.c.suit]?'red':''}" data-idx="${x.i}"><span class="v">${x.c.rank}</span><span class="s">${SUIT_CH[x.c.suit]}</span></div>`).join('');
+  tray.querySelectorAll('.pcard').forEach(el=>{
+    el.addEventListener('pointerdown',startDrag);
+    el.addEventListener('click',()=>{addCard(+el.dataset.idx);});
+  });
+}
+function renderStrip(){
+  const strip=document.getElementById('strip');
+  if(!bState.length){strip.innerHTML='<span class="ph">geser / tap kartu ke sini…</span>';return;}
+  strip.innerHTML='';
+  bState.forEach((t,idx)=>{
+    const el=document.createElement('div');
+    if(t.k==='c'){const c=bCards[t.i];el.className='tokc'+(RED[c.suit]?' red':'');el.innerHTML=c.rank+'<i>'+SUIT_CH[c.suit]+'</i>';el.title='hapus';}
+    else{el.className='toko';el.textContent=t.ch;el.title='hapus';}
+    el.addEventListener('click',()=>{bState.splice(idx,1);renderBuilder();});
+    strip.appendChild(el);
+  });
+}
+function renderOps(){
+  const ops=document.getElementById('ops');
+  const syms=['+','−','×','÷','(',')'];
+  ops.innerHTML=syms.map(s=>`<button class="opb" data-op="${s}">${s}</button>`).join('')+`<button class="opb wide" id="undo">⌫ hapus</button>`;
+  ops.querySelectorAll('.opb[data-op]').forEach(b=>b.addEventListener('click',()=>{bState.push({k:'o',ch:b.dataset.op});renderBuilder();}));
+  document.getElementById('undo').addEventListener('click',()=>{bState.pop();renderBuilder();});
+}
+function addCard(i){if(placedCardIdx().includes(i))return;bState.push({k:'c',i});renderBuilder();}
+// drag
+let ghost=null,dragIdx=null,suppressClick=false;
+function startDrag(e){
+  const el=e.currentTarget;dragIdx=+el.dataset.idx;
+  let moved=false,sx=e.clientX,sy=e.clientY;
+  ghost=el.cloneNode(true);ghost.className+=' ghostdrag';ghost.style.width=el.offsetWidth+'px';document.body.appendChild(ghost);
+  const strip=document.getElementById('strip');
+  function mv(ev){if(Math.abs(ev.clientX-sx)>8||Math.abs(ev.clientY-sy)>8)moved=true;if(!ghost)return;ghost.style.left=(ev.clientX-30)+'px';ghost.style.top=(ev.clientY-43)+'px';const r=strip.getBoundingClientRect();strip.classList.toggle('hot',ev.clientX>=r.left-40&&ev.clientX<=r.right+40&&ev.clientY>=r.top-40&&ev.clientY<=r.bottom+40);}
+  function up(ev){document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);if(ghost){ghost.remove();ghost=null;}strip.classList.remove('hot');if(moved){suppressClick=true;setTimeout(()=>suppressClick=false,160);const r=strip.getBoundingClientRect();if(ev.clientX>=r.left-40&&ev.clientX<=r.right+40&&ev.clientY>=r.top-40&&ev.clientY<=r.bottom+40)addCard(dragIdx);}}
+  mv(e);document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);
+}
+// validasi client-side (feedback UX; server tetap otoritatif)
+function builderExpr(){
+  return bState.map(t=>t.k==='c'?String(bCards[t.i].rank==='A'?1:bCards[t.i].rank):t.ch.replace('×','*').replace('÷','/').replace('−','-')).join('');
+}
+function validateBuilder(){
+  const checks=document.getElementById('checks');
+  const placed=placedCardIdx().length;
+  if(!bState.length){checks.innerHTML=stat(1,'Ekspresi valid')+stat(1,'Ke-4 kartu dipakai')+stat(1,'Pembagian bulat')+stat(1,'Hasil = 24');return;}
+  // catatan: As client-side dianggap nilai muka (1); validasi As=11 penuh di server
+  const expr=builderExpr();
+  const nums=expr.match(/\d+/g)?.map(Number)||[];
+  // cek kartu terpakai (As sebagai rank A = opsi 1/11; sederhanakan: hitung kartu non-As)
+  const cardsOk=placed===4;
+  const r=evalStrict(expr);
+  let html=stat(1,'Ekspresi tersusun')+stat(cardsOk,cardsOk?'Ke-4 kartu dipakai':'Kartu belum semua ('+placed+'/4)');
+  if(r&&r.err==='div')html+=stat(0,'Pembagian harus bulat');
+  else if(r&&r.err)html+=stat(0,'Urutan belum valid');
+  else if(r)html+=stat(1,'Pembagian bulat')+stat(r.v===24?'ok':'no',r.v===24?'Hasil = 24':'Hasil = '+r.v);
+  else html+=stat(0,'Belum lengkap');
+  checks.innerHTML=html;
+}
+function stat(ok,txt){return `<div class="stat ${ok?'ok':'no'}"><span class="tick">${ok?'✓':'✕'}</span> ${txt}</div>`;}
+function evalStrict(expr){
+  const tokens=expr.match(/\d+|[+\-*/()]/g);if(!tokens)return null;
+  let pos=0;const peek=()=>tokens[pos],eat=()=>tokens[pos++];
+  const factor=()=>{const t=peek();if(t==='('){eat();const v=expr_();if(peek()!==')')return{err:'syn'};eat();return v;}if(t&&/\d/.test(t)){eat();return{v:Number(t)};}return{err:'syn'};};
+  const term=()=>{let l=factor();if(l.err)return l;while(peek()==='*'||peek()==='/'){const op=eat();const r=factor();if(r.err)return r;if(op==='*')l={v:l.v*r.v};else{if(r.v===0||l.v%r.v!==0)return{err:'div'};l={v:l.v/r.v};}}return l;};
+  const expr_=()=>{let l=term();if(l.err)return l;while(peek()==='+'||peek()==='-'){const op=eat();const r=term();if(r.err)return r;l={v:op==='+'?l.v+r.v:l.v-r.v};}return l;};
+  const out=expr_();if(pos!==tokens.length)return{err:'syn'};return out;
+}
+function submitProof(){
+  const g=roomState.game;
+  // kirim rank asli kartu (bukan nilai client) — server yang interpret As
+  const expr=bState.map(t=>t.k==='c'?String(bCards[t.i].rank==='A'?1:bCards[t.i].rank):t.ch.replace('×','*').replace('÷','/').replace('−','-')).join('');
+  if(!expr){toast('Susun dulu rumusnya');return;}
+  socket.emit('round:prove',{expression:expr},(r)=>{if(r.error)toast(r.error);else toast('Bukti terkirim');});
+}
+
+// ---------- leaderboard ----------
+async function openLeaderboard(){
+  const lb=await api('/api/leaderboard?limit=20');
+  document.getElementById('lb-list').innerHTML=lb.length?lb.map((u,i)=>`
+    <div class="lbrow"><span class="rk ${i<3?'top':''}">${u.rank}</span>
+      <span class="nm" style="flex:1;font-size:14px">${u.username}</span>
+      <span class="mini">${u.gamesPlayed} game</span>
+      <span class="wr">${u.winRate}%</span></div>`).join(''):'<p class="mini center">Belum ada data</p>';
+  show('scr-lb');
+}
+
+// ---------- init ----------
+(function init(){
+  renderJoinBoxes();
+  if(token&&me){connectSocket();show('scr-home');renderHome();}
+  else show('scr-login');
+  document.getElementById('join-code').addEventListener('input',renderJoinBoxes);
+})();
+</script>
+</body>
+</html>
