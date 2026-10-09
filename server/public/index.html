@@ -90,6 +90,7 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
 .mbox h3{font-size:19px;margin:0 0 6px}
 .mbox .why{font-size:14px;color:var(--bone-dim);margin:0 0 4px;line-height:1.5}
 .mbox .extra{font-size:12.5px;color:var(--bone-dim);opacity:.8;margin:6px 0 0}
+.mbox .count{font-family:var(--font-d);font-size:12.5px;color:var(--gold);margin:10px 0 0;min-height:1px}
 .mbox button{margin-top:18px;width:100%;padding:13px;border-radius:12px;border:0;background:var(--gold);color:#0c1a12;font-weight:700;font-size:15px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -221,7 +222,8 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
     <h3 id="pm-title">Judul</h3>
     <p class="why" id="pm-why">alasan</p>
     <p class="extra" id="pm-extra"></p>
-    <button onclick="closeProofModal()">OK, mengerti</button>
+    <p class="count" id="pm-count"></p>
+    <button id="pm-ok" onclick="closeProofModal()" style="display:none">OK, mengerti</button>
   </div>
 </div>
 
@@ -240,29 +242,41 @@ let roomState = null;       // snapshot terbaru dari server
 let gameEvents = [];        // recorder event game
 let myRoomCode = null;
 let deadlineTimer = null;
+let clockOffset = 0; // serverNow - localNow, biar countdown sinkron & adil
 
 // ---------- util ----------
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
-// popup informatif hasil pembuktian
-function showProofResult(proofValid, reason){
+// popup informatif hasil pembuktian — OK disembunyiin dulu, auto-close
+// setelah timer biar semua pemain lihat hasilnya sama lama (adil).
+let pmTimer=null;
+function openProofPopup(emoji,title,whyHTML,extraText,holdSec){
   const m=document.getElementById('proofModal');
-  document.getElementById('pm-emoji').textContent=proofValid?'✅':'❌';
-  document.getElementById('pm-title').textContent=proofValid?'Rumus Benar!':'Rumus Salah!';
-  document.getElementById('pm-why').textContent=proofValid?'Rumusmu valid dan hasilnya 24.':(reason||'Ekspresimu tidak valid.');
-  document.getElementById('pm-extra').textContent=proofValid?'':'4 kartu ronde jatuh kepadamu.';
+  const ok=document.getElementById('pm-ok');
+  const cnt=document.getElementById('pm-count');
+  document.getElementById('pm-emoji').textContent=emoji;
+  document.getElementById('pm-title').textContent=title;
+  document.getElementById('pm-why').innerHTML=whyHTML;
+  document.getElementById('pm-extra').textContent=extraText||'';
+  ok.style.display='none'; // jangan tampilin tombol OK dulu
   m.classList.add('show');
+  clearInterval(pmTimer);
+  let left=holdSec; cnt.textContent=`Tutup otomatis dalam ${left}…`;
+  pmTimer=setInterval(()=>{
+    left--;
+    if(left<=0){ cnt.textContent=''; m.classList.remove('show'); clearInterval(pmTimer); }
+    else cnt.textContent=`Tutup otomatis dalam ${left}…`;
+  },1000);
 }
-function closeProofModal(){document.getElementById('proofModal').classList.remove('show');}
+function showProofResult(proofValid, reason){
+  openProofPopup('❌','Rumus Salah!',reason||'Ekspresimu tidak valid.','4 kartu ronde jatuh kepadamu.',4);
+}
+function closeProofModal(){clearInterval(pmTimer);document.getElementById('proofModal').classList.remove('show');}
 // tampilin rumus benar ke SEMUA pemain (broadcast dari server)
 function prettyExpr(e){return e.replace(/\*/g,'×').replace(/\//g,'÷').replace(/-/g,'−');}
 function showProofCorrect(nick, expr){
-  const m=document.getElementById('proofModal');
-  document.getElementById('pm-emoji').textContent='🎉';
-  document.getElementById('pm-title').textContent='Jawaban Benar!';
-  document.getElementById('pm-why').innerHTML=`<b>${nick||'Seseorang'}</b> membuktikan:<br><span style="font-family:var(--font-d);font-size:17px;color:var(--gold)">${prettyExpr(expr)} = 24</span>`;
-  document.getElementById('pm-extra').textContent='';
-  m.classList.add('show');
+  const why=`<b>${nick||'Seseorang'}</b> membuktikan:<br><span style="font-family:var(--font-d);font-size:17px;color:var(--gold)">${prettyExpr(expr)} = 24</span>`;
+  openProofPopup('🎉','Jawaban Benar!',why,'',5);
 }
 const SUIT_CH={S:'♠',H:'♥',D:'♦',C:'♣'};
 const RED={H:1,D:1};
@@ -296,7 +310,7 @@ function connectSocket(){
   // registered pakai token (server pakai akun id); guest pakai playerId+nickname stabil
   const auth = (token && me.id!==guestPid) ? { token } : { playerId: guestPid, nickname: me.username||guestNick };
   socket=io({auth});
-  socket.on('room:state',(st)=>{roomState=st;renderCurrent();});
+  socket.on('room:state',(st)=>{if(st.serverNow)clockOffset=st.serverNow-Date.now();roomState=st;renderCurrent();});
   socket.on('game:event',(e)=>{gameEvents.push(e);if(e.type==='game_over')handleGameOver(e);renderCurrent();});
   socket.on('game:error',(e)=>toast(e.message||'Error game'));
   socket.on('proof:correct',(d)=>{showProofCorrect(d.proverNick,d.expression);});
@@ -350,7 +364,9 @@ function renderCountdown(){
   show('scr-game');
   clearInterval(cdTicker);
   const tick=()=>{
-    const left=Math.max(0,Math.ceil(((roomState?.countdownEndsAt||0)-Date.now())/1000));
+    // pakai jam server (clockOffset) biar semua HP lihat angka sama (adil)
+    const serverNow=Date.now()+clockOffset;
+    const left=Math.max(0,Math.ceil(((roomState?.countdownEndsAt||0)-serverNow)/1000));
     const el=document.getElementById('cd-num');
     if(el)el.textContent=left;
     if(left<=0||roomState?.status!=='countdown')clearInterval(cdTicker);

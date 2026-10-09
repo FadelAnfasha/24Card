@@ -20,6 +20,7 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
     hostId: room.hostId,
     status: room.status,
     countdownEndsAt: room.countdownEndsAt,
+    serverNow: Date.now(), // sinkron jam server -> countdown adil utk semua HP
     players: room.players.map((p) => ({ playerId: p.playerId, nickname: p.nickname, connected: p.socketId !== '' })),
     game: room.game ? room.game.snapshot() : null,
   });
