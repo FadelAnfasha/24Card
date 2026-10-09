@@ -102,6 +102,7 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
     <h1><span class="mark">24</span> 24Card</h1>
     <p class="mini mt">Tebak · Bluff · Bertahan</p>
     <div class="stack">
+      <input class="field" id="guest-nick" placeholder="Nama kamu (kaya Kahoot)" maxlength="15" value="">
       <button class="btn" onclick="guestLogin()">Main sebagai Tamu</button>
       <button class="btn btn-ghost" onclick="show('scr-register')">Daftar Akun</button>
     </div>
@@ -261,7 +262,10 @@ async function api(path,opts){const r=await fetch(API+path,{headers:{'Content-Ty
 
 // ---------- auth ----------
 function guestLogin(){
-  // Kahoot-style: guest gak perlu akun DB — langsung pake uuid stabil
+  // Kahoot-style: guest pilih namanya sendiri (input di layar login)
+  const input=document.getElementById('guest-nick');
+  const nick=(input?.value||'').trim().slice(0,15) || ('Pemain'+Math.floor(1000+Math.random()*9000));
+  guestNick=nick;localStorage.setItem('tc_nick',guestNick);
   me={ id: guestPid, username: guestNick };
   token='';
   connectSocket();show('scr-home');renderHome();
@@ -555,6 +559,8 @@ async function openLeaderboard(){
 // ---------- init ----------
 (function init(){
   renderJoinBoxes();
+  // pre-fill nama tamu terakhir di input login
+  const gn=document.getElementById('guest-nick'); if(gn) gn.value=guestNick;
   if(token&&me){connectSocket();show('scr-home');renderHome();}
   else show('scr-login');
   document.getElementById('join-code').addEventListener('input',renderJoinBoxes);
