@@ -254,6 +254,16 @@ function showProofResult(proofValid, reason){
   m.classList.add('show');
 }
 function closeProofModal(){document.getElementById('proofModal').classList.remove('show');}
+// tampilin rumus benar ke SEMUA pemain (broadcast dari server)
+function prettyExpr(e){return e.replace(/\*/g,'×').replace(/\//g,'÷').replace(/-/g,'−');}
+function showProofCorrect(nick, expr){
+  const m=document.getElementById('proofModal');
+  document.getElementById('pm-emoji').textContent='🎉';
+  document.getElementById('pm-title').textContent='Jawaban Benar!';
+  document.getElementById('pm-why').innerHTML=`<b>${nick||'Seseorang'}</b> membuktikan:<br><span style="font-family:var(--font-d);font-size:17px;color:var(--gold)">${prettyExpr(expr)} = 24</span>`;
+  document.getElementById('pm-extra').textContent='';
+  m.classList.add('show');
+}
 const SUIT_CH={S:'♠',H:'♥',D:'♦',C:'♣'};
 const RED={H:1,D:1};
 function cardHTML(c){return `<div class="pcard ${RED[c.suit]?'red':''}"><span class="v">${c.rank}</span><span class="s">${SUIT_CH[c.suit]}</span></div>`;}
@@ -289,6 +299,7 @@ function connectSocket(){
   socket.on('room:state',(st)=>{roomState=st;renderCurrent();});
   socket.on('game:event',(e)=>{gameEvents.push(e);if(e.type==='game_over')handleGameOver(e);renderCurrent();});
   socket.on('game:error',(e)=>toast(e.message||'Error game'));
+  socket.on('proof:correct',(d)=>{showProofCorrect(d.proverNick,d.expression);});
   socket.on('connect_error',(e)=>toast('Koneksi gagal: '+e.message));
 }
 
@@ -540,8 +551,9 @@ function submitProof(){
   if(!expr){toast('Susun dulu rumusnya');return;}
   socket.emit('round:prove',{expression:expr},(r)=>{
     if(r.error){toast(r.error);return;}
-    // popup informatif: benar/salah + alasan detail dari server
-    showProofResult(r.proofValid, r.reason);
+    // kalo BENAR: popup "Jawaban Benar" muncul ke SEMUA lewat broadcast proof:correct.
+    // kalo SALAH: cuma si pembuktian yang lihat detail kegagalan (bluff ketahuan).
+    if(!r.proofValid) showProofResult(false, r.reason);
   });
 }
 

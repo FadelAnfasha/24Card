@@ -145,10 +145,14 @@ export function registerSocketHandlers(io: Server, socket: Socket): void {
   socket.on('round:prove', (payload: { expression: string }, cb?: (res: object) => void) => {
     const room = roomManager.roomOfPlayer(playerId);
     if (!room?.game) return cb?.({ error: 'belum ada game' });
-    const res = room.game.prove(playerId, payload?.expression ?? '');
+    const expr = payload?.expression ?? '';
+    const res = room.game.prove(playerId, expr);
     if (!res.accepted) return cb?.({ error: 'pembuktian tidak valid' });
-    // teruskan alasan validasi ke client biar popup informatif
     cb?.({ ok: true, proofValid: res.proofValid, reason: res.reason ?? null });
+    // jawaban BENAR -> broadcast ke SEMUA pemain biar semua tau rumusnya
+    if (res.proofValid) {
+      io.to(room.code).emit('proof:correct', { proverId: playerId, proverNick: nickname, expression: expr });
+    }
   });
 
   // ---------- disconnect ----------
