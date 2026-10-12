@@ -33,6 +33,12 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
 .btn-sm{height:40px;font-size:13px;border-radius:10px}
 .stack{display:flex;flex-direction:column;gap:10px;margin-top:14px}
 .field{background:var(--surface);border:1.5px solid var(--line);border-radius:11px;padding:13px;color:var(--bone);font-size:16px;width:100%;font-family:var(--font-b)}
+.howto{overflow-y:auto;flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;padding-right:4px}
+.howto section{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:13px 15px}
+.howto h3{font-family:var(--font-d);font-size:15px;color:var(--gold);margin-bottom:7px}
+.howto p{font-size:13.5px;line-height:1.6;color:var(--bone);margin-bottom:4px}
+.howto p:last-child{margin-bottom:0}
+.howto b{color:var(--gold)}
 .pcard{width:60px;height:86px;background:linear-gradient(165deg,#f6ecc9,#dfc99b);border-radius:9px;color:var(--ink);position:relative;padding:7px 8px;font-family:var(--font-d);box-shadow:0 5px 12px rgba(0,0,0,.4),inset 0 0 0 2px rgba(255,255,255,.25);border:1px solid #b8975e;flex-shrink:0}
 .pcard.red{color:var(--sred)}
 .pcard .v{font-size:22px;line-height:1}
@@ -116,6 +122,7 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
       <input class="field" id="guest-nick" placeholder="Nama kamu (kaya Kahoot)" maxlength="15" value="">
       <button class="btn" onclick="guestLogin()">Main sebagai Tamu</button>
       <button class="btn btn-ghost" onclick="show('scr-register')">Daftar Akun</button>
+      <button class="btn btn-ghost" onclick="openHowto('scr-login')">Cara Main</button>
     </div>
     <p class="mini center mt" id="login-info"></p>
   </div>
@@ -143,6 +150,7 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
     <button class="btn" onclick="createRoom()">Buat Room</button>
     <button class="btn btn-ghost" onclick="show('scr-join')">Gabung Room</button>
     <button class="btn btn-ghost" onclick="openLeaderboard()">Peringkat</button>
+    <button class="btn btn-ghost" onclick="openHowto('scr-home')">Cara Main</button>
   </div>
   <div class="spacer"></div>
   <button class="btn btn-ghost btn-sm" onclick="logout()">Keluar</button>
@@ -221,6 +229,38 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
   <div class="mt" id="lb-list"></div>
   <div class="spacer"></div>
   <button class="btn btn-ghost" onclick="show('scr-home')">Kembali</button>
+</div>
+
+<!-- CARA MAIN -->
+<div class="screen" id="scr-howto">
+  <h2>Cara Main</h2>
+  <div class="howto">
+    <section>
+      <h3>🎯 Tujuan</h3>
+      <p>Gabungin <b>4 kartu</b> di meja pakai <b>+ − × ÷</b> dan kurung biar hasilnya tepat <b>24</b>. Tiap kartu dipakai <b>tepat sekali</b>, dan pembagian harus <b>bulat</b>.</p>
+      <p>Pemenang = pemain dengan <b>kartu penalty paling sedikit</b> setelah 10 ronde.</p>
+    </section>
+    <section>
+      <h3>🃏 Nilai Kartu</h3>
+      <p>Kartu <b>2–10</b> sesuai angka. <b>As (A) = 1 atau 11</b> — bebas kamu pilih (tap <b>⇄</b> di kartu As).</p>
+      <p><b>Contoh:</b> A,3,4,6 → 11+3+4+6 = 24 ✅</p>
+    </section>
+    <section>
+      <h3>▶️ Alur Ronde</h3>
+      <p>1. <b>Raise</b> — yakin bisa 24? Raise hand. Boleh juga bluff (gertak).</p>
+      <p>2. <b>Challenge</b> — tinggal 1 belum raise? Dia wajib menantang salah satu yang raise.</p>
+      <p>3. <b>Bukti</b> — yang ditantang susun rumusnya.</p>
+      <p>&nbsp;&nbsp;• Bukti <b>benar</b> → 4 kartu jatuh ke <b>penantang</b>.</p>
+      <p>&nbsp;&nbsp;• <b>Bluff ketahuan</b> → yang nyontek ambil 4 kartu.</p>
+    </section>
+    <section>
+      <h3>💡 Tips</h3>
+      <p>Semua raise → pemain terakhir yang raise wajib bukti.</p>
+      <p>Challenge & bukti ada batas waktu 45 detik. Surrender bisa pas fase raise (setelah 30 detik).</p>
+    </section>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn btn-ghost" onclick="show(howtoFrom)">Kembali</button>
 </div>
 
 <div id="toast"></div>
@@ -313,6 +353,8 @@ async function doRegister(){
 function saveAuth(){localStorage.setItem('tc_token',token);localStorage.setItem('tc_me',JSON.stringify(me));}
 function logout(){token='';me={id:guestPid,username:guestNick};localStorage.removeItem('tc_token');localStorage.removeItem('tc_me');if(socket)socket.disconnect();show('scr-login');}
 function renderHome(){document.getElementById('home-user').textContent=me?`@${me.username}`:'';}
+let howtoFrom='scr-home';
+function openHowto(from){howtoFrom=from||'scr-home';show('scr-howto');}
 
 // ---------- socket ----------
 function connectSocket(){
