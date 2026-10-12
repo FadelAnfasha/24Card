@@ -1,0 +1,175 @@
+@import "tailwindcss";
+
+/* ===== Theme tokens (saloon) ===== */
+@theme {
+  --color-bg: #160e06;
+  --color-felt: #1f1409;
+  --color-surface: #2a1c0f;
+  --color-surface2: #3a2614;
+  --color-line: #5a3d1f;
+  --color-bone: #f0e2c0;
+  --color-cream: #f3e7c9;
+  --color-ink: #2a1a0c;
+  --color-muted: #a5885c;
+  --color-gold: #d99a3a;
+  --color-saloon: #a8352b;
+  --color-westgreen: #5a7d3a;
+
+  --font-display: "Rye", system-ui, serif;
+  --font-body: "Roboto Slab", system-ui, serif;
+}
+
+/* ===== Base ===== */
+@layer base {
+  :root {
+    /* serat kayu organik (SVG turbulence + displacement) — nol dependensi */
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004' numOctaves='2' seed='4' result='warp'/%3E%3CfeTurbulence type='turbulence' baseFrequency='0.01 0.11' numOctaves='2' seed='9' result='grain'/%3E%3CfeDisplacementMap in='grain' in2='warp' scale='75' xChannelSelector='R' yChannelSelector='G' result='d'/%3E%3CfeColorMatrix in='d' type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.35 0 0 0 -0.4'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background:
+      radial-gradient(800px 500px at 50% -5%, #3a2612 0%, transparent 55%),
+      var(--color-bg);
+    color: var(--color-bone);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .4;
+    background: repeating-linear-gradient(90deg, transparent 0 22px, rgba(0,0,0,.12) 22px 24px);
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+}
+
+/* ===== Components ===== */
+@layer components {
+  .screen { @apply hidden min-h-screen px-4 pt-[18px] pb-7 max-w-[480px] mx-auto flex-col relative z-[1]; }
+  .screen.active { @apply flex; }
+
+  h1 { @apply font-display text-[26px] flex items-center gap-2.5; }
+  h1 .mark { @apply w-[38px] h-[38px] bg-gold rounded-[10px] grid place-items-center text-ink font-bold text-[19px]; }
+  h2 { @apply font-display text-lg mb-3; }
+
+  .mini { @apply text-xs text-muted; }
+  .center { @apply text-center; }
+  .mt { @apply mt-3.5; }
+  .spacer { @apply flex-1; }
+  .hidden { @apply !hidden; }
+
+  .btn { @apply flex items-center justify-center gap-2 h-[50px] rounded-xl border-0 cursor-pointer font-display font-semibold text-[15px] w-full text-ink bg-gold transition-transform active:scale-[.97] disabled:opacity-40 disabled:pointer-events-none; }
+  .btn-ghost { @apply bg-transparent text-bone border-[1.5px] border-line; }
+  .btn-danger { @apply bg-saloon text-white; }
+  .btn-sm { @apply h-10 text-[13px] rounded-[10px]; }
+
+  .stack { @apply flex flex-col gap-2.5 mt-3.5; }
+  .field { @apply bg-surface border-[1.5px] border-line rounded-[11px] p-3 text-bone text-base w-full font-body; }
+
+  /* --- tombol papan kayu (grain + gradasi = raw, sisanya apply) --- */
+  .woodbtn {
+    @apply relative flex items-center justify-center gap-3 w-full px-5 py-[19px] border-0 rounded-[14px] cursor-pointer
+           font-display text-lg tracking-wide text-cream transition-[transform,box-shadow] duration-[70ms] active:translate-y-1;
+    background-color: #5a3d1f;
+    background-image: var(--grain), linear-gradient(180deg, #6b4a26 0%, #5a3d1f 55%, #4a3117 100%);
+    background-blend-mode: multiply; background-size: 220px 220px, cover;
+    box-shadow: 0 6px 0 #2c1a0a, 0 12px 22px rgba(0,0,0,.45), inset 0 2px 0 rgba(255,210,140,.22), inset 0 -4px 10px rgba(0,0,0,.35);
+    text-shadow: 0 2px 3px rgba(0,0,0,.55);
+  }
+  .woodbtn .ic { @apply text-[25px] shrink-0; filter: drop-shadow(0 2px 2px rgba(0,0,0,.45)); }
+  .woodbtn:active { box-shadow: 0 2px 0 #2c1a0a, 0 5px 12px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,210,140,.18); }
+  .woodbtn::before, .woodbtn::after {
+    content: ""; @apply absolute top-1/2 w-[9px] h-[9px] rounded-full -translate-y-1/2 z-[2];
+    background: radial-gradient(circle at 35% 30%, #d0b078, #7a5a2e); box-shadow: 0 1px 2px rgba(0,0,0,.6);
+  }
+  .woodbtn::before { @apply left-[11px]; }
+  .woodbtn::after { @apply right-[11px]; }
+  .woodbtn.primary {
+    background-color: #8f4e17;
+    background-image: var(--grain), linear-gradient(180deg, #a8631f 0%, #8f4e17 55%, #6e3a10 100%);
+    box-shadow: 0 6px 0 #3a1e07, 0 12px 26px rgba(0,0,0,.5), inset 0 2px 0 rgba(255,215,150,.3), inset 0 -4px 10px rgba(0,0,0,.35);
+  }
+  .woodbtn.primary:active { box-shadow: 0 2px 0 #3a1e07, 0 5px 12px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,215,150,.22); }
+
+  /* --- kartu parchment --- */
+  .pcard {
+    @apply w-[60px] h-[86px] rounded-[9px] text-ink relative p-2 font-display shrink-0 border border-[#b8975e];
+    background: linear-gradient(165deg, #f6ecc9, #dfc99b);
+    box-shadow: 0 5px 12px rgba(0,0,0,.4), inset 0 0 0 2px rgba(255,255,255,.25);
+  }
+  .pcard.red { @apply text-saloon; }
+  .pcard .v { @apply text-[22px] leading-none; }
+  .pcard .s { @apply text-base absolute bottom-1.5 right-2; }
+  .cards { @apply flex justify-center gap-2 my-3.5; }
+
+  .prow { @apply flex items-center gap-2.5 bg-surface border border-line p-3 rounded-[11px] cursor-pointer; }
+  .prow.me { @apply border-gold bg-[#221f13]; }
+  .prow .av { @apply w-8 h-8 rounded-full bg-surface2 grid place-items-center font-display font-semibold text-[13px] shrink-0; }
+  .prow .nm { @apply text-sm font-medium flex-1 overflow-hidden text-ellipsis whitespace-nowrap; }
+  .prow .cnt { @apply font-display text-xs text-muted; }
+
+  .badge { @apply font-display text-[10px] font-semibold px-2 py-[3px] rounded-full tracking-wide; }
+  .badge.up { @apply bg-westgreen/15 text-westgreen border border-westgreen/40; }
+  .badge.think { @apply bg-surface2 text-muted border border-line; }
+  .badge.host { @apply bg-gold/15 text-gold border border-gold/40; }
+  .badge.bad { @apply bg-saloon/15 text-[#efb8b3] border border-saloon/40; }
+
+  .gtop { @apply flex justify-between items-center pb-2.5 border-b border-line mb-2 font-display; }
+  .gtop .rnd { @apply text-sm font-semibold; }
+  .gtop .deck { @apply text-xs text-muted; }
+  .banner { @apply bg-gold/10 border border-gold/45 text-[#e8cf9a] rounded-[11px] p-3.5 text-[13.5px] mb-3; }
+  .banner.bad { @apply bg-saloon/13 border-saloon/45 text-[#efb8b3]; }
+  .banner b { @apply text-white; }
+  .timer { @apply font-display text-xs text-gold text-center my-1.5; }
+
+  /* --- drag builder --- */
+  .strip { @apply min-h-[62px] bg-bg border-[1.5px] border-dashed border-line rounded-xl flex flex-wrap items-center justify-center gap-1.5 p-2.5 mb-2.5; }
+  .strip .ph { @apply text-[#43554c] text-[13px]; }
+  .strip.hot { @apply border-gold border-solid; }
+  .tokc { @apply bg-bone text-ink rounded-lg font-display font-bold text-base p-2 cursor-pointer leading-none border border-[#b8975e]; box-shadow: 0 3px 7px rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,255,255,.25); }
+  .tokc i { @apply not-italic text-[11px] ml-px; }
+  .tokc.red { @apply text-saloon; }
+  .tokc.ace { @apply flex items-center gap-1 p-1.5; }
+  .tokc.ace .tv { @apply text-base; }
+  .tokc.ace .tg { @apply bg-black/15 rounded-md text-xs p-[3px] px-[5px] cursor-pointer ml-0.5 touch-manipulation; }
+  .toko { @apply text-gold font-display font-bold text-lg cursor-pointer px-[3px] py-[5px] leading-none; }
+  .tray { @apply flex justify-center gap-2.5 mb-2.5 min-h-[88px] items-center flex-wrap; }
+  .tray .pcard { @apply cursor-grab touch-none select-none; }
+  .ops { @apply flex gap-1.5 justify-center flex-wrap mb-2.5; }
+  .opb { @apply bg-surface border border-line text-bone font-display font-semibold text-[17px] w-11 h-10 rounded-[10px] cursor-pointer; }
+  .opb.wide { @apply w-auto px-3 text-xs text-muted; }
+  .ghostdrag { @apply fixed pointer-events-none opacity-[.92] z-[99] scale-105 -rotate-6; }
+
+  .stat { @apply flex items-center gap-2 text-[13px] py-1; }
+  .stat .tick { @apply w-[17px] h-[17px] rounded-full grid place-items-center text-[10px] font-bold shrink-0; }
+  .stat.ok { @apply text-[#bfe3cd]; }
+  .stat.no { @apply text-[#efb8b3]; }
+  .stat.ok .tick { @apply bg-westgreen/20 text-westgreen border border-westgreen/50; }
+  .stat.no .tick { @apply bg-saloon/18 text-saloon border border-saloon/50; }
+
+  .codeboxes { @apply flex gap-2 justify-center my-4; }
+  .cbox { @apply w-11 h-[54px] bg-surface border-[1.5px] border-line rounded-[10px] grid place-items-center font-display font-bold text-[22px]; }
+
+  /* --- how to play --- */
+  .howto { @apply overflow-y-auto flex-1 min-h-0 flex flex-col gap-3.5 pr-1; }
+  .howto section { @apply bg-surface border-[1.5px] border-line rounded-xl p-3.5 px-4; }
+  .howto h3 { @apply font-display text-[15px] text-gold mb-[7px]; }
+  .howto p { @apply text-[13.5px] leading-relaxed text-bone mb-1; }
+  .howto p:last-child { @apply mb-0; }
+  .howto b { @apply text-gold; }
+
+  /* --- toast --- */
+  #toast { @apply fixed left-1/2 -translate-x-1/2 bottom-6 bg-surface2 border border-line text-bone px-[18px] py-[11px] rounded-[10px] text-[13.5px] z-[999] opacity-0 transition-opacity duration-[250ms] pointer-events-none max-w-[90%] text-center; }
+  #toast.show { @apply opacity-100; }
+
+  /* --- popup hasil pembuktian --- */
+  .modal { @apply fixed inset-0 bg-black/60 hidden items-center justify-center z-[1000] p-6; }
+  .modal.show { @apply flex; }
+  .mbox { @apply bg-surface border border-line rounded-2xl px-5 py-6 max-w-[340px] w-full text-center shadow-[0_12px_40px_rgba(0,0,0,.5)]; }
+  .mbox .emoji { @apply text-[44px] leading-none mb-2.5; }
+  .mbox h3 { @apply text-[19px] mb-1.5; }
+  .mbox .why { @apply text-sm text-cream/80 mb-1 leading-normal; }
+  .mbox .extra { @apply text-[12.5px] text-cream/60 mt-1.5; }
+  .mbox .count { @apply font-display text-[12.5px] text-gold mt-2.5 min-h-px; }
+  .mbox button { @apply mt-[18px] w-full p-3 rounded-xl border-0 bg-gold text-[#0c1a12] font-bold text-[15px]; }
+}

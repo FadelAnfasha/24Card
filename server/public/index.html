@@ -6,130 +6,7 @@
 <title>24Card</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#160e06;--felt:#1f1409;--surface:#2a1c0f;--surface2:#3a2614;--line:#5a3d1f;
-  --bone:#f0e2c0;--ink:#2a1a0c;--muted:#a5885c;--gold:#d99a3a;--red:#a8352b;--green:#5a7d3a;--sred:#a8352b;
-  --font-d:'Rye',system-ui,serif;--font-b:'Roboto Slab',system-ui,serif;
-  /* serat kayu organik (SVG turbulence + displacement) — nol dependensi */
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.004' numOctaves='2' seed='4' result='warp'/%3E%3CfeTurbulence type='turbulence' baseFrequency='0.01 0.11' numOctaves='2' seed='9' result='grain'/%3E%3CfeDisplacementMap in='grain' in2='warp' scale='75' xChannelSelector='R' yChannelSelector='G' result='d'/%3E%3CfeColorMatrix in='d' type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.35 0 0 0 -0.4'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:
-  radial-gradient(800px 500px at 50% -5%,#3a2612 0%,transparent 55%),
-  var(--bg);
-  color:var(--bone);font-family:var(--font-b);min-height:100vh;overflow-x:hidden;position:relative}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.4;
-  background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(0,0,0,.12) 22px 24px)}
-.screen{display:none;min-height:100vh;padding:18px 16px 28px;max-width:480px;margin:0 auto;flex-direction:column;position:relative;z-index:1}
-.screen.active{display:flex}
-h1{font-family:var(--font-d);font-size:26px;display:flex;align-items:center;gap:10px}
-h1 .mark{width:38px;height:38px;background:var(--gold);border-radius:10px;display:grid;place-items:center;color:var(--ink);font-weight:700;font-size:19px}
-h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
-.mini{font-size:12px;color:var(--muted)}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:50px;border-radius:12px;border:none;cursor:pointer;font-family:var(--font-d);font-weight:600;font-size:15px;width:100%;color:var(--ink);background:var(--gold);transition:transform .08s}
-.btn:active{transform:scale(.97)}
-.btn:disabled{opacity:.4;pointer-events:none}
-.btn-ghost{background:transparent;color:var(--bone);border:1.5px solid var(--line)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-sm{height:40px;font-size:13px;border-radius:10px}
-/* tombol papan kayu berukir */
-.woodbtn{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;
-  padding:19px 20px;border:0;border-radius:14px;cursor:pointer;
-  background-color:#5a3d1f;
-  background-image:var(--grain),linear-gradient(180deg,#6b4a26 0%,#5a3d1f 55%,#4a3117 100%);
-  background-blend-mode:multiply;background-size:220px 220px,cover;
-  color:var(--cream);font-family:var(--font-d);font-size:18px;letter-spacing:.5px;
-  box-shadow:0 6px 0 #2c1a0a,0 12px 22px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,210,140,.22),inset 0 -4px 10px rgba(0,0,0,.35);
-  transition:transform .07s,box-shadow .07s;text-shadow:0 2px 3px rgba(0,0,0,.55)}
-.woodbtn .ic{font-size:25px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));flex-shrink:0}
-.woodbtn:active{transform:translateY(4px);box-shadow:0 2px 0 #2c1a0a,0 5px 12px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,210,140,.18)}
-.woodbtn::before,.woodbtn::after{content:"";position:absolute;top:50%;width:9px;height:9px;border-radius:50%;transform:translateY(-50%);
-  background:radial-gradient(circle at 35% 30%,#d0b078,#7a5a2e);box-shadow:0 1px 2px rgba(0,0,0,.6);z-index:2}
-.woodbtn::before{left:11px}.woodbtn::after{right:11px}
-.woodbtn.primary{background-color:#8f4e17;
-  background-image:var(--grain),linear-gradient(180deg,#a8631f 0%,#8f4e17 55%,#6e3a10 100%);
-  box-shadow:0 6px 0 #3a1e07,0 12px 26px rgba(0,0,0,.5),inset 0 2px 0 rgba(255,215,150,.3),inset 0 -4px 10px rgba(0,0,0,.35)}
-.woodbtn.primary:active{box-shadow:0 2px 0 #3a1e07,0 5px 12px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,215,150,.22)}
-.stack{display:flex;flex-direction:column;gap:10px;margin-top:14px}
-.field{background:var(--surface);border:1.5px solid var(--line);border-radius:11px;padding:13px;color:var(--bone);font-size:16px;width:100%;font-family:var(--font-b)}
-.howto{overflow-y:auto;flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;padding-right:4px}
-.howto section{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:13px 15px}
-.howto h3{font-family:var(--font-d);font-size:15px;color:var(--gold);margin-bottom:7px}
-.howto p{font-size:13.5px;line-height:1.6;color:var(--bone);margin-bottom:4px}
-.howto p:last-child{margin-bottom:0}
-.howto b{color:var(--gold)}
-.pcard{width:60px;height:86px;background:linear-gradient(165deg,#f6ecc9,#dfc99b);border-radius:9px;color:var(--ink);position:relative;padding:7px 8px;font-family:var(--font-d);box-shadow:0 5px 12px rgba(0,0,0,.4),inset 0 0 0 2px rgba(255,255,255,.25);border:1px solid #b8975e;flex-shrink:0}
-.pcard.red{color:var(--sred)}
-.pcard .v{font-size:22px;line-height:1}
-.pcard .s{font-size:16px;position:absolute;bottom:6px;right:8px}
-.cards{display:flex;justify-content:center;gap:9px;margin:14px 0}
-.prow{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);padding:10px 12px;border-radius:11px;cursor:pointer}
-.prow.me{border-color:var(--gold);background:#221f13}
-.prow .av{width:32px;height:32px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-family:var(--font-d);font-weight:600;font-size:13px;flex-shrink:0}
-.prow .nm{font-size:14px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.prow .cnt{font-family:var(--font-d);font-size:12px;color:var(--muted)}
-.badge{font-family:var(--font-d);font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;letter-spacing:.3px}
-.badge.up{background:rgba(65,168,111,.16);color:var(--green);border:1px solid rgba(65,168,111,.4)}
-.badge.think{background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
-.badge.host{background:rgba(217,164,65,.15);color:var(--gold);border:1px solid rgba(217,164,65,.4)}
-.badge.bad{background:rgba(200,68,58,.15);color:#efb8b3;border:1px solid rgba(200,68,58,.4)}
-.gtop{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:8px;font-family:var(--font-d)}
-.gtop .rnd{font-size:14px;font-weight:600}
-.gtop .deck{font-size:12px;color:var(--muted)}
-.banner{background:rgba(217,164,65,.1);border:1px solid rgba(217,164,65,.45);color:#e8cf9a;border-radius:11px;padding:12px 14px;font-size:13.5px;margin-bottom:12px}
-.banner.bad{background:rgba(200,68,58,.13);border-color:rgba(200,68,58,.45);color:#efb8b3}
-.banner b{color:#fff}
-/* drag builder */
-.strip{min-height:62px;background:var(--bg);border:1.5px dashed var(--line);border-radius:12px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:10px;margin-bottom:10px}
-.strip .ph{color:#43554c;font-size:13px}
-.strip.hot{border-color:var(--gold);border-style:solid}
-.tokc{background:var(--bone);color:var(--ink);border-radius:8px;font-family:var(--font-d);font-weight:700;font-size:16px;padding:8px 9px;cursor:pointer;line-height:1;box-shadow:0 3px 7px rgba(0,0,0,.3)}
-.tokc i{font-style:normal;font-size:11px;margin-left:1px}
-.tokc.red{color:var(--sred)}
-.tokc.ace{display:flex;align-items:center;gap:4px;padding:6px 7px}
-.tokc.ace .tv{font-size:16px}
-.tokc.ace .tg{background:rgba(0,0,0,.14);border-radius:6px;font-size:12px;padding:3px 5px;cursor:pointer;margin-left:2px;touch-action:manipulation}
-.toko{color:var(--gold);font-family:var(--font-d);font-weight:700;font-size:18px;cursor:pointer;padding:5px 3px;line-height:1}
-.tray{display:flex;justify-content:center;gap:10px;margin-bottom:10px;min-height:88px;align-items:center;flex-wrap:wrap}
-.tray .pcard{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
-.ops{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
-.opb{background:var(--surface);border:1px solid var(--line);color:var(--bone);font-family:var(--font-d);font-weight:600;font-size:17px;width:44px;height:40px;border-radius:10px;cursor:pointer}
-.opb.wide{width:auto;padding:0 13px;font-size:12px;color:var(--muted)}
-.ghostdrag{position:fixed;pointer-events:none;opacity:.92;z-index:99;transform:scale(1.06) rotate(-4deg)}
-.stat{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0}
-.stat .tick{width:17px;height:17px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0}
-.stat.ok{color:#bfe3cd}.stat.no{color:#efb8b3}
-.stat.ok .tick{background:rgba(65,168,111,.2);color:var(--green);border:1px solid rgba(65,168,111,.5)}
-.stat.no .tick{background:rgba(200,68,58,.18);color:var(--red);border:1px solid rgba(200,68,58,.5)}
-.codeboxes{display:flex;gap:8px;justify-content:center;margin:16px 0}
-.cbox{width:44px;height:54px;background:var(--surface);border:1.5px solid var(--line);border-radius:10px;display:grid;place-items:center;font-family:var(--font-d);font-weight:700;font-size:22px}
-.lbrow{display:flex;align-items:center;gap:11px;padding:11px;background:var(--surface);border:1px solid var(--line);border-radius:11px;margin-bottom:8px}
-.lbrow .rk{font-family:var(--font-d);font-weight:700;font-size:15px;width:26px;color:var(--muted)}
-.lbrow .rk.top{color:var(--gold)}
-.lbrow .wr{margin-left:auto;font-family:var(--font-d);font-weight:600;color:var(--gold)}
-.nav{display:flex;border-top:1px solid var(--line);background:var(--surface);margin:16px -16px -28px;position:sticky;bottom:0}
-.nav div{flex:1;text-align:center;padding:12px 0;font-family:var(--font-d);font-size:12px;color:var(--muted);cursor:pointer}
-.nav div.on{color:var(--gold)}
-.spacer{flex:1}
-.center{text-align:center}
-.mt{margin-top:14px}
-.hidden{display:none!important}
-#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--line);color:var(--bone);padding:11px 18px;border-radius:10px;font-size:13.5px;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90%;text-align:center}
-#toast.show{opacity:1}
-.timer{font-family:var(--font-d);font-size:12px;color:var(--gold);text-align:center;margin:6px 0}
-/* popup hasil pembuktian */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:1000;padding:24px}
-.modal.show{display:flex}
-.mbox{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px 20px;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.5)}
-.mbox .emoji{font-size:44px;line-height:1;margin-bottom:10px}
-.mbox h3{font-size:19px;margin:0 0 6px}
-.mbox .why{font-size:14px;color:var(--bone-dim);margin:0 0 4px;line-height:1.5}
-.mbox .extra{font-size:12.5px;color:var(--bone-dim);opacity:.8;margin:6px 0 0}
-.mbox .count{font-family:var(--font-d);font-size:12.5px;color:var(--gold);margin:10px 0 0;min-height:1px}
-.mbox button{margin-top:18px;width:100%;padding:13px;border-radius:12px;border:0;background:var(--gold);color:#0c1a12;font-weight:700;font-size:15px}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
+<link rel="stylesheet" href="/app.css">
 </head>
 <body>
 
@@ -137,7 +14,7 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
 <div class="screen active" id="scr-login">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
     <h1><span class="mark">24</span> 24Card</h1>
-    <p class="mini mt">Tebak · Bluff · Bertahan</p>
+    <!-- <p class="mini mt">Tebak · Bluff · Bertahan</p> -->
     <div class="stack">
       <input class="field" id="guest-nick" placeholder="Nama kamu (kaya Kahoot)" maxlength="15" value="">
       <button class="woodbtn primary" onclick="guestLogin()"><span class="ic">🃏</span>Main sebagai Tamu</button>
