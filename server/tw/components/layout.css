@@ -1,0 +1,26 @@
+/* ===== Layout, tombol basic, input ===== */
+@layer components {
+  .screen { @apply hidden min-h-screen px-4 pt-[18px] pb-7 max-w-[480px] mx-auto flex-col relative z-[1]; }
+  .screen.active { @apply flex; }
+
+  h1 { @apply font-display text-[26px] flex items-center gap-2.5; }
+  h1 .mark { @apply w-[38px] h-[38px] bg-gold rounded-[10px] grid place-items-center text-ink font-bold text-[19px]; }
+  h2 { @apply font-display text-lg mb-3; }
+
+  .mini { @apply text-xs text-muted; }
+  .center { @apply text-center; }
+  .mt { @apply mt-3.5; }
+  .spacer { @apply flex-1; }
+  .hidden { @apply !hidden; }
+
+  .btn { @apply flex items-center justify-center gap-2 h-[50px] rounded-xl border-0 cursor-pointer font-display font-semibold text-[15px] w-full text-ink bg-gold transition-transform active:scale-[.97] disabled:opacity-40 disabled:pointer-events-none; }
+  .btn-ghost { @apply bg-transparent text-bone border-[1.5px] border-line; }
+  .btn-danger { @apply bg-saloon text-white; }
+  .btn-sm { @apply h-10 text-[13px] rounded-[10px]; }
+
+  .stack { @apply flex flex-col gap-2.5 mt-3.5; }
+  .field { @apply bg-surface border-[1.5px] border-line rounded-[11px] p-3 text-bone text-base w-full font-body; }
+
+  .codeboxes { @apply flex gap-2 justify-center my-4; }
+  .cbox { @apply w-11 h-[54px] bg-surface border-[1.5px] border-line rounded-[10px] grid place-items-center font-display font-bold text-[22px]; }
+}

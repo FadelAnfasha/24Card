@@ -1,0 +1,29 @@
+/* ===== Kartu parchment + drag builder ===== */
+@layer components {
+  .pcard {
+    @apply w-[60px] h-[86px] rounded-[9px] text-ink relative p-2 font-display shrink-0 border border-[#b8975e];
+    background: linear-gradient(165deg, #f6ecc9, #dfc99b);
+    box-shadow: 0 5px 12px rgba(0,0,0,.4), inset 0 0 0 2px rgba(255,255,255,.25);
+  }
+  .pcard.red { @apply text-saloon; }
+  .pcard .v { @apply text-[22px] leading-none; }
+  .pcard .s { @apply text-base absolute bottom-1.5 right-2; }
+  .cards { @apply flex justify-center gap-2 my-3.5; }
+
+  .strip { @apply min-h-[62px] bg-bg border-[1.5px] border-dashed border-line rounded-xl flex flex-wrap items-center justify-center gap-1.5 p-2.5 mb-2.5; }
+  .strip .ph { @apply text-[#43554c] text-[13px]; }
+  .strip.hot { @apply border-gold border-solid; }
+  .tokc { @apply bg-bone text-ink rounded-lg font-display font-bold text-base p-2 cursor-pointer leading-none border border-[#b8975e]; box-shadow: 0 3px 7px rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,255,255,.25); }
+  .tokc i { @apply not-italic text-[11px] ml-px; }
+  .tokc.red { @apply text-saloon; }
+  .tokc.ace { @apply flex items-center gap-1 p-1.5; }
+  .tokc.ace .tv { @apply text-base; }
+  .tokc.ace .tg { @apply bg-black/15 rounded-md text-xs p-[3px] px-[5px] cursor-pointer ml-0.5 touch-manipulation; }
+  .toko { @apply text-gold font-display font-bold text-lg cursor-pointer px-[3px] py-[5px] leading-none; }
+  .tray { @apply flex justify-center gap-2.5 mb-2.5 min-h-[88px] items-center flex-wrap; }
+  .tray .pcard { @apply cursor-grab touch-none select-none; }
+  .ops { @apply flex gap-1.5 justify-center flex-wrap mb-2.5; }
+  .opb { @apply bg-surface border border-line text-bone font-display font-semibold text-[17px] w-11 h-10 rounded-[10px] cursor-pointer; }
+  .opb.wide { @apply w-auto px-3 text-xs text-muted; }
+  .ghostdrag { @apply fixed pointer-events-none opacity-[.92] z-[99] scale-105 -rotate-6; }
+}

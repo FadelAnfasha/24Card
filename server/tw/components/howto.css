@@ -1,0 +1,9 @@
+/* ===== Layar Cara Main ===== */
+@layer components {
+  .howto { @apply overflow-y-auto flex-1 min-h-0 flex flex-col gap-3.5 pr-1; }
+  .howto section { @apply bg-surface border-[1.5px] border-line rounded-xl p-3.5 px-4; }
+  .howto h3 { @apply font-display text-[15px] text-gold mb-[7px]; }
+  .howto p { @apply text-[13.5px] leading-relaxed text-bone mb-1; }
+  .howto p:last-child { @apply mb-0; }
+  .howto b { @apply text-gold; }
+}

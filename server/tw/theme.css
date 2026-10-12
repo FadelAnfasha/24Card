@@ -1,0 +1,18 @@
+/* ===== Theme tokens (saloon) ===== */
+@theme {
+  --color-bg: #160e06;
+  --color-felt: #1f1409;
+  --color-surface: #2a1c0f;
+  --color-surface2: #3a2614;
+  --color-line: #5a3d1f;
+  --color-bone: #f0e2c0;
+  --color-cream: #f3e7c9;
+  --color-ink: #2a1a0c;
+  --color-muted: #a5885c;
+  --color-gold: #d99a3a;
+  --color-saloon: #a8352b;
+  --color-westgreen: #5a7d3a;
+
+  --font-display: "Rye", system-ui, serif;
+  --font-body: "Roboto Slab", system-ui, serif;
+}

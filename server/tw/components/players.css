@@ -1,0 +1,29 @@
+/* ===== Pemain, badge, banner, stat ===== */
+@layer components {
+  .prow { @apply flex items-center gap-2.5 bg-surface border border-line p-3 rounded-[11px] cursor-pointer; }
+  .prow.me { @apply border-gold bg-[#221f13]; }
+  .prow .av { @apply w-8 h-8 rounded-full bg-surface2 grid place-items-center font-display font-semibold text-[13px] shrink-0; }
+  .prow .nm { @apply text-sm font-medium flex-1 overflow-hidden text-ellipsis whitespace-nowrap; }
+  .prow .cnt { @apply font-display text-xs text-muted; }
+
+  .badge { @apply font-display text-[10px] font-semibold px-2 py-[3px] rounded-full tracking-wide; }
+  .badge.up { @apply bg-westgreen/15 text-westgreen border border-westgreen/40; }
+  .badge.think { @apply bg-surface2 text-muted border border-line; }
+  .badge.host { @apply bg-gold/15 text-gold border border-gold/40; }
+  .badge.bad { @apply bg-saloon/15 text-[#efb8b3] border border-saloon/40; }
+
+  .gtop { @apply flex justify-between items-center pb-2.5 border-b border-line mb-2 font-display; }
+  .gtop .rnd { @apply text-sm font-semibold; }
+  .gtop .deck { @apply text-xs text-muted; }
+  .banner { @apply bg-gold/10 border border-gold/45 text-[#e8cf9a] rounded-[11px] p-3.5 text-[13.5px] mb-3; }
+  .banner.bad { @apply bg-saloon/13 border-saloon/45 text-[#efb8b3]; }
+  .banner b { @apply text-white; }
+  .timer { @apply font-display text-xs text-gold text-center my-1.5; }
+
+  .stat { @apply flex items-center gap-2 text-[13px] py-1; }
+  .stat .tick { @apply w-[17px] h-[17px] rounded-full grid place-items-center text-[10px] font-bold shrink-0; }
+  .stat.ok { @apply text-[#bfe3cd]; }
+  .stat.no { @apply text-[#efb8b3]; }
+  .stat.ok .tick { @apply bg-westgreen/20 text-westgreen border border-westgreen/50; }
+  .stat.no .tick { @apply bg-saloon/18 text-saloon border border-saloon/50; }
+}

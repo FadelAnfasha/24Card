@@ -1,0 +1,26 @@
+/* ===== Tombol papan kayu berukir (grain + gradasi = raw) ===== */
+@layer components {
+  .woodbtn {
+    @apply relative flex items-center justify-center gap-3 w-full px-5 py-[19px] border-0 rounded-[14px] cursor-pointer
+           font-display text-lg tracking-wide text-cream transition-[transform,box-shadow] duration-[70ms] active:translate-y-1;
+    background-color: #5a3d1f;
+    background-image: var(--grain), linear-gradient(180deg, #6b4a26 0%, #5a3d1f 55%, #4a3117 100%);
+    background-blend-mode: multiply; background-size: 220px 220px, cover;
+    box-shadow: 0 6px 0 #2c1a0a, 0 12px 22px rgba(0,0,0,.45), inset 0 2px 0 rgba(255,210,140,.22), inset 0 -4px 10px rgba(0,0,0,.35);
+    text-shadow: 0 2px 3px rgba(0,0,0,.55);
+  }
+  .woodbtn .ic { @apply text-[25px] shrink-0; filter: drop-shadow(0 2px 2px rgba(0,0,0,.45)); }
+  .woodbtn:active { box-shadow: 0 2px 0 #2c1a0a, 0 5px 12px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,210,140,.18); }
+  .woodbtn::before, .woodbtn::after {
+    content: ""; @apply absolute top-1/2 w-[9px] h-[9px] rounded-full -translate-y-1/2 z-[2];
+    background: radial-gradient(circle at 35% 30%, #d0b078, #7a5a2e); box-shadow: 0 1px 2px rgba(0,0,0,.6);
+  }
+  .woodbtn::before { @apply left-[11px]; }
+  .woodbtn::after { @apply right-[11px]; }
+  .woodbtn.primary {
+    background-color: #8f4e17;
+    background-image: var(--grain), linear-gradient(180deg, #a8631f 0%, #8f4e17 55%, #6e3a10 100%);
+    box-shadow: 0 6px 0 #3a1e07, 0 12px 26px rgba(0,0,0,.5), inset 0 2px 0 rgba(255,215,150,.3), inset 0 -4px 10px rgba(0,0,0,.35);
+  }
+  .woodbtn.primary:active { box-shadow: 0 2px 0 #3a1e07, 0 5px 12px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,215,150,.22); }
+}

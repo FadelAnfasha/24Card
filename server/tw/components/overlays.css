@@ -1,0 +1,15 @@
+/* ===== Toast + popup pembuktian ===== */
+@layer components {
+  #toast { @apply fixed left-1/2 -translate-x-1/2 bottom-6 bg-surface2 border border-line text-bone px-[18px] py-[11px] rounded-[10px] text-[13.5px] z-[999] opacity-0 transition-opacity duration-[250ms] pointer-events-none max-w-[90%] text-center; }
+  #toast.show { @apply opacity-100; }
+
+  .modal { @apply fixed inset-0 bg-black/60 hidden items-center justify-center z-[1000] p-6; }
+  .modal.show { @apply flex; }
+  .mbox { @apply bg-surface border border-line rounded-2xl px-5 py-6 max-w-[340px] w-full text-center shadow-[0_12px_40px_rgba(0,0,0,.5)]; }
+  .mbox .emoji { @apply text-[44px] leading-none mb-2.5; }
+  .mbox h3 { @apply text-[19px] mb-1.5; }
+  .mbox .why { @apply text-sm text-cream/80 mb-1 leading-normal; }
+  .mbox .extra { @apply text-[12.5px] text-cream/60 mt-1.5; }
+  .mbox .count { @apply font-display text-[12.5px] text-gold mt-2.5 min-h-px; }
+  .mbox button { @apply mt-[18px] w-full p-3 rounded-xl border-0 bg-gold text-[#0c1a12] font-bold text-[15px]; }
+}
