@@ -31,6 +31,21 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
 .btn-ghost{background:transparent;color:var(--bone);border:1.5px solid var(--line)}
 .btn-danger{background:var(--red);color:#fff}
 .btn-sm{height:40px;font-size:13px;border-radius:10px}
+/* tombol papan kayu berukir */
+.woodbtn{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;
+  padding:19px 20px;border:0;border-radius:14px;cursor:pointer;
+  background:linear-gradient(180deg,#6b4a26 0%,#5a3d1f 55%,#4a3117 100%);
+  color:var(--cream);font-family:var(--font-d);font-size:18px;letter-spacing:.5px;
+  box-shadow:0 6px 0 #2c1a0a,0 12px 22px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,210,140,.22),inset 0 -4px 10px rgba(0,0,0,.35);
+  transition:transform .07s,box-shadow .07s;text-shadow:0 2px 3px rgba(0,0,0,.55)}
+.woodbtn .ic{font-size:25px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.45));flex-shrink:0}
+.woodbtn:active{transform:translateY(4px);box-shadow:0 2px 0 #2c1a0a,0 5px 12px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,210,140,.18)}
+.woodbtn::before,.woodbtn::after{content:"";position:absolute;top:50%;width:9px;height:9px;border-radius:50%;transform:translateY(-50%);
+  background:radial-gradient(circle at 35% 30%,#d0b078,#7a5a2e);box-shadow:0 1px 2px rgba(0,0,0,.6)}
+.woodbtn::before{left:11px}.woodbtn::after{right:11px}
+.woodbtn.primary{background:linear-gradient(180deg,#a8631f 0%,#8f4e17 55%,#6e3a10 100%);
+  box-shadow:0 6px 0 #3a1e07,0 12px 26px rgba(0,0,0,.5),inset 0 2px 0 rgba(255,215,150,.3),inset 0 -4px 10px rgba(0,0,0,.35)}
+.woodbtn.primary:active{box-shadow:0 2px 0 #3a1e07,0 5px 12px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,215,150,.22)}
 .stack{display:flex;flex-direction:column;gap:10px;margin-top:14px}
 .field{background:var(--surface);border:1.5px solid var(--line);border-radius:11px;padding:13px;color:var(--bone);font-size:16px;width:100%;font-family:var(--font-b)}
 .howto{overflow-y:auto;flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;padding-right:4px}
@@ -120,23 +135,10 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
     <p class="mini mt">Tebak · Bluff · Bertahan</p>
     <div class="stack">
       <input class="field" id="guest-nick" placeholder="Nama kamu (kaya Kahoot)" maxlength="15" value="">
-      <button class="btn" onclick="guestLogin()">Main sebagai Tamu</button>
-      <button class="btn btn-ghost" onclick="show('scr-register')">Daftar Akun</button>
-      <button class="btn btn-ghost" onclick="openHowto('scr-login')">Cara Main</button>
+      <button class="woodbtn primary" onclick="guestLogin()"><span class="ic">🃏</span>Main sebagai Tamu</button>
+      <button class="woodbtn" onclick="openHowto('scr-login')"><span class="ic">📖</span>Cara Main</button>
     </div>
     <p class="mini center mt" id="login-info"></p>
-  </div>
-</div>
-
-<!-- REGISTER -->
-<div class="screen" id="scr-register">
-  <h2>Daftar Akun</h2>
-  <div class="stack">
-    <input class="field" id="reg-user" placeholder="Username (3-24 karakter)" maxlength="24">
-    <input class="field" id="reg-pass" type="password" placeholder="Password (min 6)">
-    <button class="btn" onclick="doRegister()">Daftar</button>
-    <button class="btn btn-ghost" onclick="show('scr-login')">Kembali</button>
-    <p class="mini center" id="reg-info"></p>
   </div>
 </div>
 
@@ -147,10 +149,9 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
     <span class="mini" id="home-user"></span>
   </div>
   <div class="stack mt">
-    <button class="btn" onclick="createRoom()">Buat Room</button>
-    <button class="btn btn-ghost" onclick="show('scr-join')">Gabung Room</button>
-    <button class="btn btn-ghost" onclick="openLeaderboard()">Peringkat</button>
-    <button class="btn btn-ghost" onclick="openHowto('scr-home')">Cara Main</button>
+    <button class="woodbtn primary" onclick="createRoom()"><span class="ic">🎯</span>Buat Room</button>
+    <button class="woodbtn" onclick="show('scr-join')"><span class="ic">👥</span>Gabung Room</button>
+    <button class="woodbtn" onclick="openHowto('scr-home')"><span class="ic">📖</span>Cara Main</button>
   </div>
   <div class="spacer"></div>
   <button class="btn btn-ghost btn-sm" onclick="logout()">Keluar</button>
@@ -220,15 +221,6 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
   <div class="stack mt" id="over-standings" style="gap:8px"></div>
   <div class="spacer"></div>
   <button class="btn" onclick="show('scr-home')">Ke Beranda</button>
-</div>
-
-<!-- LEADERBOARD -->
-<div class="screen" id="scr-lb">
-  <h2>Peringkat</h2>
-  <p class="mini">Diurutkan dari win rate</p>
-  <div class="mt" id="lb-list"></div>
-  <div class="spacer"></div>
-  <button class="btn btn-ghost" onclick="show('scr-home')">Kembali</button>
 </div>
 
 <!-- CARA MAIN -->
@@ -343,12 +335,6 @@ function guestLogin(){
   me={ id: guestPid, username: guestNick };
   token='';
   connectSocket();show('scr-home');renderHome();
-}
-async function doRegister(){
-  const u=document.getElementById('reg-user').value.trim(),p=document.getElementById('reg-pass').value;
-  const r=await api('/api/auth/register',{method:'POST',body:JSON.stringify({username:u,password:p})});
-  if(r.error){document.getElementById('reg-info').textContent=r.error;return;}
-  token=r.token;me=r.user;saveAuth();connectSocket();show('scr-home');renderHome();
 }
 function saveAuth(){localStorage.setItem('tc_token',token);localStorage.setItem('tc_me',JSON.stringify(me));}
 function logout(){token='';me={id:guestPid,username:guestNick};localStorage.removeItem('tc_token');localStorage.removeItem('tc_me');if(socket)socket.disconnect();show('scr-login');}
@@ -633,17 +619,6 @@ function submitProof(){
     // kalo SALAH: cuma si pembuktian yang lihat detail kegagalan (bluff ketahuan).
     if(!r.proofValid) showProofResult(false, r.reason);
   });
-}
-
-// ---------- leaderboard ----------
-async function openLeaderboard(){
-  const lb=await api('/api/leaderboard?limit=20');
-  document.getElementById('lb-list').innerHTML=lb.length?lb.map((u,i)=>`
-    <div class="lbrow"><span class="rk ${i<3?'top':''}">${u.rank}</span>
-      <span class="nm" style="flex:1;font-size:14px">${u.username}</span>
-      <span class="mini">${u.gamesPlayed} game</span>
-      <span class="wr">${u.winRate}%</span></div>`).join(''):'<p class="mini center">Belum ada data</p>';
-  show('scr-lb');
 }
 
 // ---------- init ----------
