@@ -4,15 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>24Card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Special+Elite&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0d1210;--felt:#14201b;--surface:#1a2823;--surface2:#20302a;--line:#2c4038;
-  --bone:#f4efe2;--ink:#101613;--muted:#8aa396;--gold:#d9a441;--red:#c8443a;--green:#41a86f;--sred:#c8392f;
-  --font-d:'Space Grotesk',system-ui,sans-serif;--font-b:'DM Sans',system-ui,sans-serif;
+  --bg:#160e06;--felt:#1f1409;--surface:#2a1c0f;--surface2:#3a2614;--line:#5a3d1f;
+  --bone:#f0e2c0;--ink:#2a1a0c;--muted:#a5885c;--gold:#d99a3a;--red:#a8352b;--green:#5a7d3a;--sred:#a8352b;
+  --font-d:'Rye',system-ui,serif;--font-b:'Roboto Slab',system-ui,serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);color:var(--bone);font-family:var(--font-b);min-height:100vh;overflow-x:hidden}
-.screen{display:none;min-height:100vh;padding:18px 16px 28px;max-width:480px;margin:0 auto;flex-direction:column}
+body{background:
+  radial-gradient(800px 500px at 50% -5%,#3a2612 0%,transparent 55%),
+  var(--bg);
+  color:var(--bone);font-family:var(--font-b);min-height:100vh;overflow-x:hidden;position:relative}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.4;
+  background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(0,0,0,.12) 22px 24px)}
+.screen{display:none;min-height:100vh;padding:18px 16px 28px;max-width:480px;margin:0 auto;flex-direction:column;position:relative;z-index:1}
 .screen.active{display:flex}
 h1{font-family:var(--font-d);font-size:26px;display:flex;align-items:center;gap:10px}
 h1 .mark{width:38px;height:38px;background:var(--gold);border-radius:10px;display:grid;place-items:center;color:var(--ink);font-weight:700;font-size:19px}
@@ -26,7 +33,7 @@ h2{font-family:var(--font-d);font-size:18px;margin-bottom:12px}
 .btn-sm{height:40px;font-size:13px;border-radius:10px}
 .stack{display:flex;flex-direction:column;gap:10px;margin-top:14px}
 .field{background:var(--surface);border:1.5px solid var(--line);border-radius:11px;padding:13px;color:var(--bone);font-size:16px;width:100%;font-family:var(--font-b)}
-.pcard{width:60px;height:86px;background:var(--bone);border-radius:9px;color:var(--ink);position:relative;padding:7px 8px;font-family:var(--font-d);font-weight:700;box-shadow:0 4px 10px rgba(0,0,0,.35);flex-shrink:0}
+.pcard{width:60px;height:86px;background:linear-gradient(165deg,#f6ecc9,#dfc99b);border-radius:9px;color:var(--ink);position:relative;padding:7px 8px;font-family:var(--font-d);box-shadow:0 5px 12px rgba(0,0,0,.4),inset 0 0 0 2px rgba(255,255,255,.25);border:1px solid #b8975e;flex-shrink:0}
 .pcard.red{color:var(--sred)}
 .pcard .v{font-size:22px;line-height:1}
 .pcard .s{font-size:16px;position:absolute;bottom:6px;right:8px}
